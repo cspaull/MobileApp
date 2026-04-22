@@ -15,7 +15,7 @@
 4.  **Khởi động máy chủ:**
     ```bash
     npm run start
-    npm run start --tunnel
+    npx expo start --tunnel
     ```
 5.  **Quét mã QR:**
     * Sau khi lệnh chạy xong, một mã QR sẽ xuất hiện trên terminal.
