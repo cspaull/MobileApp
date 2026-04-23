@@ -1,10 +1,9 @@
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View, Image } from 'react-native';
 
-import { useAppContext } from '../state/AppContext';
-import { colors } from '../theme/theme';
 import { ArtifactDetailScreen } from '../screens/ArtifactDetailScreen';
 import { ArtifactsScreen } from '../screens/ArtifactsScreen';
 import { AuthScreen } from '../screens/AuthScreen';
@@ -12,11 +11,8 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { MapScreen } from '../screens/MapScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { ScheduleScreen } from '../screens/ScheduleScreen';
-
-export type RootStackParamList = {
-  MainTabs: undefined;
-  ArtifactDetail: { artifactId: string };
-};
+import { useAppContext } from '../state/AppContext';
+import { colors } from '../theme/theme';
 
 export type TabParamList = {
   Home: undefined;
@@ -24,6 +20,11 @@ export type TabParamList = {
   Artifact: undefined;
   Schedule: undefined;
   Profile: undefined;
+};
+
+export type RootStackParamList = {
+  MainTabs: NavigatorScreenParams<TabParamList> | undefined;
+  ArtifactDetail: { artifactId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -37,27 +38,46 @@ const tabLabels: Record<keyof TabParamList, string> = {
   Profile: 'Profile',
 };
 
+// 👉 DÙNG ICON PNG
+const tabIcons: Record<keyof TabParamList, any> = {
+  Home: require('../../assets/icons/home.png'),
+  Map: require('../../assets/icons/map.png'),
+  Artifact: require('../../assets/icons/artifact.png'),
+  Schedule: require('../../assets/icons/schedule.png'),
+  Profile: require('../../assets/icons/profile.png'),
+};
+
 function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.text,
+        tabBarActiveTintColor: colors.accent,   // 👉 màu đỏ khi chọn
+        tabBarInactiveTintColor: colors.text,   // 👉 màu xám/đen khi không chọn
         tabBarLabelStyle: styles.tabLabel,
-        tabBarIcon: ({ focused, color }) => (
-          <View style={[styles.tabIcon, focused ? styles.tabIconActive : undefined]}>
-            <Text style={[styles.tabIconText, { color }]}>{tabLabels[route.name].slice(0, 1)}</Text>
-          </View>
+
+        // 👉 ICON
+        tabBarIcon: ({ color, focused }) => (
+          <Image
+            source={tabIcons[route.name]}
+            style={[
+              styles.iconImage,
+              {
+                tintColor: color,
+                transform: [{ scale: focused ? 1.1 : 1 }],
+              },
+            ]}
+            resizeMode="contain"
+          />
         ),
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Map" component={MapScreen} />
-      <Tab.Screen name="Artifact" component={ArtifactsScreen} />
-      <Tab.Screen name="Schedule" component={ScheduleScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ title: tabLabels.Home }} />
+      <Tab.Screen name="Map" component={MapScreen} options={{ title: tabLabels.Map }} />
+      <Tab.Screen name="Artifact" component={ArtifactsScreen} options={{ title: tabLabels.Artifact }} />
+      <Tab.Screen name="Schedule" component={ScheduleScreen} options={{ title: tabLabels.Schedule }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: tabLabels.Profile }} />
     </Tab.Navigator>
   );
 }
@@ -106,26 +126,16 @@ const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: '#FFFDF5',
     borderTopColor: colors.border,
-    height: 78,
-    paddingTop: 8,
+    height: 72,
+    paddingTop: 6,
     paddingBottom: 10,
   },
   tabLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
   },
-  tabIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(128, 0, 0, 0.08)',
-  },
-  tabIconActive: {
-    backgroundColor: 'rgba(128, 0, 0, 0.18)',
-  },
-  tabIconText: {
-    fontWeight: '800',
+  iconImage: {
+    width: 24,
+    height: 24,
   },
 });

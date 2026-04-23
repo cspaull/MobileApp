@@ -1,13 +1,12 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Screen } from '../components/Screen';
-import { Card, Pill, PrimaryButton } from '../components/Ui';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { useAppContext } from '../state/AppContext';
-import { colors, spacing } from '../theme/theme';
+import { colors, radius, spacing } from '../theme/theme';
 import { getArtifactById, getRelatedArtifacts } from '../utils/museum';
 
 export function ArtifactDetailScreen() {
@@ -48,23 +47,25 @@ export function ArtifactDetailScreen() {
     }
   }, [artifact, elapsedSeconds]);
 
-  const relatedArtifacts = useMemo(
-    () => (artifact ? getRelatedArtifacts(artifact.id) : []),
-    [artifact],
-  );
-
   useEffect(() => {
     setElapsedSeconds(0);
     setIsPlaying(false);
   }, [artifact?.id]);
 
+  const relatedArtifacts = useMemo(
+    () => (artifact ? getRelatedArtifacts(artifact.id) : []),
+    [artifact],
+  );
+
   if (!artifact) {
     return (
       <Screen>
-        <Card>
-          <Text style={styles.title}>Artifact not found</Text>
-          <PrimaryButton label="Back" onPress={() => navigation.goBack()} />
-        </Card>
+        <View style={styles.fallbackCard}>
+          <Text style={styles.fallbackTitle}>Artifact not found</Text>
+          <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.backButtonText}>Back</Text>
+          </Pressable>
+        </View>
       </Screen>
     );
   }
@@ -73,118 +74,400 @@ export function ArtifactDetailScreen() {
   const isFavorite = favorites.includes(artifact.id);
 
   return (
-    <Screen>
-      <PrimaryButton label="Back" onPress={() => navigation.goBack()} variant="secondary" />
-
-      <Card>
-        <Text style={styles.era}>{artifact.era}</Text>
-        <Text style={styles.title}>{artifact.title}</Text>
-        <Text style={styles.meta}>
-          {artifact.dynastyOrCollection} • {artifact.floorLabel}, {artifact.roomCode}
-        </Text>
-        <View style={styles.tagsRow}>
-          {artifact.tags.map((tag) => (
-            <Pill key={tag} label={tag} active />
-          ))}
-        </View>
-      </Card>
-
-      <Card>
-        <Text style={styles.sectionTitle}>Audio Guide - English</Text>
-        <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${Math.max(progress * 100, 4)}%` }]} />
-        </View>
-        <Text style={styles.meta}>
-          {elapsedSeconds}s / {artifact.audioDurationSeconds}s
-        </Text>
-        <PrimaryButton
-          label={isPlaying ? 'Pause Audio' : 'Play Audio'}
-          onPress={() => setIsPlaying((current) => !current)}
-        />
-      </Card>
-
-      <Card>
-        <Text style={styles.sectionTitle}>Story</Text>
-        <Text style={styles.body}>{artifact.summary}</Text>
-        <Text style={styles.detailLine}>Material: {artifact.material}</Text>
-        <Text style={styles.detailLine}>Size: {artifact.size}</Text>
-        <Text style={styles.detailLine}>Origin: {artifact.origin}</Text>
-        <PrimaryButton
-          label={isFavorite ? 'Remove from Favorites' : 'Save to Favorites'}
+    <Screen contentStyle={styles.screenContent}>
+      <View style={styles.hero}>
+        <Pressable style={[styles.floatingIconButton, styles.leftAction]} onPress={() => navigation.goBack()}>
+          <Text style={styles.floatingIconText}>&lt;</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.floatingIconButton, styles.rightAction]}
           onPress={() => toggleArtifactFavorite(artifact.id)}
-          variant={isFavorite ? 'secondary' : 'primary'}
-        />
-      </Card>
+        >
+          <Text style={styles.favoriteIcon}>{isFavorite ? 'H' : 'h'}</Text>
+        </Pressable>
 
-      <Card>
-        <Text style={styles.sectionTitle}>Related Artifacts</Text>
+        <View style={styles.heroDiscOuter}>
+          <View style={styles.heroDiscInner}>
+            <Text style={styles.heroGlyph}>{iconForArtifact(artifact.type)}</Text>
+          </View>
+        </View>
+      </View>
+
+      <Text style={styles.era}>{artifact.era}</Text>
+      <Text style={styles.title}>{artifact.title}</Text>
+      <Text style={styles.meta}>
+        {artifact.dynastyOrCollection} - {artifact.floorLabel}, {artifact.roomCode}
+      </Text>
+
+      <View style={styles.tagRow}>
+        {artifact.tags.slice(0, 3).map((tag) => (
+          <View key={tag} style={styles.tag}>
+            <Text style={styles.tagText}>{tag}</Text>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.audioCard}>
+        <Pressable style={styles.playButton} onPress={() => setIsPlaying((current) => !current)}>
+          <Text style={styles.playIcon}>{isPlaying ? 'II' : '>'}</Text>
+        </Pressable>
+        <View style={styles.audioContent}>
+          <Text style={styles.audioTitle}>AUDIO GUIDE - ENGLISH</Text>
+          <View style={styles.audioProgressTrack}>
+            <View style={[styles.audioProgressFill, { width: `${Math.max(progress * 100, 5)}%` }]} />
+          </View>
+          <Text style={styles.audioTime}>
+            {formatTime(elapsedSeconds)} / {formatTime(artifact.audioDurationSeconds)}
+          </Text>
+        </View>
+      </View>
+
+      <Text style={styles.body}>{artifact.summary}</Text>
+
+      <View style={styles.dividerRow}>
+        <View style={styles.divider} />
+      </View>
+
+      <View style={styles.infoGrid}>
+        <InfoTile label="AGE" value={artifact.era === '2nd c. BCE' ? '200 BCE' : artifact.era} />
+        <InfoTile label="MATERIAL" value={artifact.material} />
+        <InfoTile label="SIZE" value={artifact.size} />
+        <InfoTile label="ORIGIN" value={artifact.origin} />
+      </View>
+
+      <View style={styles.relatedHeader}>
+        <View style={styles.relatedLine} />
+        <Text style={styles.relatedTitle}>Related Artifacts</Text>
+      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.relatedRow}>
         {relatedArtifacts.map((related) => (
           <Pressable
             key={related.id}
+            style={styles.relatedCard}
             onPress={() => navigation.push('ArtifactDetail', { artifactId: related.id })}
           >
-            <View style={styles.relatedRow}>
-              <Text style={styles.relatedTitle}>{related.title}</Text>
-              <Text style={styles.meta}>{related.era}</Text>
+            <View style={styles.relatedBadge}>
+              <Text style={styles.relatedBadgeText}>{related.floorLabel}</Text>
+            </View>
+            <View style={styles.relatedIconZone}>
+              <Text style={styles.relatedIcon}>{iconForArtifact(related.type)}</Text>
+            </View>
+            <View style={styles.relatedCopy}>
+              <Text style={styles.relatedEra}>{related.era}</Text>
+              <Text style={styles.relatedCardTitle}>{related.title}</Text>
+              <Text style={styles.relatedMeta}>{related.dynastyOrCollection}</Text>
             </View>
           </Pressable>
         ))}
-      </Card>
+      </ScrollView>
     </Screen>
   );
 }
 
+function InfoTile({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.infoTile}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue}>{value}</Text>
+    </View>
+  );
+}
+
+function formatTime(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function iconForArtifact(type: string) {
+  switch (type) {
+    case 'Antiquity':
+      return 'U';
+    case 'Weapon':
+      return 'W';
+    case 'Map':
+      return 'M';
+    case 'Textile':
+      return 'T';
+    case 'Scale Model':
+      return 'B';
+    default:
+      return '*';
+  }
+}
+
 const styles = StyleSheet.create({
-  era: {
-    color: colors.accentSoft,
+  screenContent: {
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xxl,
+  },
+  fallbackCard: {
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  fallbackTitle: {
+    color: colors.text,
+    fontSize: 24,
     fontWeight: '700',
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    borderRadius: radius.pill,
+    backgroundColor: colors.accent,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  backButtonText: {
+    color: colors.surface,
+    fontWeight: '700',
+  },
+  hero: {
+    minHeight: 260,
+    borderRadius: radius.lg,
+    backgroundColor: '#D8CCA5',
+    borderWidth: 2,
+    borderColor: '#2A9DFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  floatingIconButton: {
+    position: 'absolute',
+    top: spacing.sm,
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: 'rgba(128,0,0,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+  },
+  floatingIconText: {
+    color: colors.surfaceSoft,
+    fontSize: 22,
+    lineHeight: 22,
+    fontWeight: '700',
+  },
+  leftAction: {
+    left: spacing.sm,
+  },
+  rightAction: {
+    right: spacing.sm,
+    backgroundColor: '#E3D8B7',
+  },
+  favoriteIcon: {
+    color: colors.accent,
+    fontSize: 22,
+    lineHeight: 22,
+    fontWeight: '700',
+  },
+  heroDiscOuter: {
+    width: 208,
+    height: 208,
+    borderRadius: 104,
+    backgroundColor: '#7B4A2E',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroDiscInner: {
+    width: 186,
+    height: 186,
+    borderRadius: 93,
+    borderWidth: 3,
+    borderColor: '#C58A57',
+    backgroundColor: '#3E2C25',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroGlyph: {
+    color: '#E7A567',
+    fontSize: 84,
+    lineHeight: 88,
+    fontWeight: '700',
+  },
+  era: {
+    color: colors.accentSecondary,
+    fontSize: 16,
+    marginTop: spacing.sm,
   },
   title: {
     color: colors.text,
-    fontSize: 28,
+    fontSize: 30,
     lineHeight: 34,
-    fontWeight: '800',
+    fontStyle: 'italic',
+    fontWeight: '400',
   },
   meta: {
-    color: colors.textMuted,
-    lineHeight: 22,
+    color: colors.textSoft,
+    fontSize: 15,
+    fontStyle: 'italic',
   },
-  tagsRow: {
+  tagRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  sectionTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '800',
+  tag: {
+    borderRadius: radius.pill,
+    backgroundColor: '#F0D3CD',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
   },
-  progressBar: {
-    height: 10,
-    borderRadius: 999,
-    backgroundColor: colors.accentSoft,
+  tagText: {
+    color: '#B35A4B',
+    fontSize: 12,
+  },
+  audioCard: {
+    minHeight: 92,
+    borderRadius: radius.lg,
+    backgroundColor: colors.accent,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingHorizontal: spacing.md,
+  },
+  playButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: 'rgba(0,0,0,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  playIcon: {
+    color: colors.surfaceSoft,
+    fontSize: 18,
+    lineHeight: 18,
+    fontWeight: '700',
+  },
+  audioContent: {
+    flex: 1,
+    gap: 4,
+  },
+  audioTitle: {
+    color: colors.surface,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  audioProgressTrack: {
+    height: 4,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.26)',
     overflow: 'hidden',
   },
-  progressFill: {
+  audioProgressFill: {
     height: '100%',
-    backgroundColor: colors.accent,
+    backgroundColor: '#DDB0A6',
+  },
+  audioTime: {
+    color: '#E4CCC6',
+    fontSize: 12,
   },
   body: {
-    color: colors.textMuted,
+    color: colors.text,
+    fontSize: 16,
     lineHeight: 23,
   },
-  detailLine: {
-    color: colors.text,
-    fontSize: 14,
+  dividerRow: {
+    paddingVertical: 2,
   },
-  relatedRow: {
-    paddingVertical: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.borderSoft,
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(92, 15, 15, 0.28)',
+  },
+  infoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  infoTile: {
+    width: '47.8%',
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: 'rgba(92, 15, 15, 0.15)',
+    padding: spacing.md,
     gap: 4,
+  },
+  infoLabel: {
+    color: '#9E8B76',
+    fontSize: 11,
+  },
+  infoValue: {
+    color: colors.text,
+    fontSize: 15,
+  },
+  relatedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  relatedLine: {
+    width: 26,
+    height: 2,
+    backgroundColor: colors.accent,
   },
   relatedTitle: {
     color: colors.accent,
+    fontSize: 18,
     fontWeight: '700',
+  },
+  relatedRow: {
+    gap: spacing.sm,
+    paddingRight: spacing.lg,
+  },
+  relatedCard: {
+    width: 154,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: 'rgba(92, 15, 15, 0.15)',
+    overflow: 'hidden',
+  },
+  relatedBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 1,
+    borderRadius: radius.pill,
+    backgroundColor: '#F4D4CF',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  relatedBadgeText: {
+    color: '#CA6D5D',
+    fontSize: 10,
+  },
+  relatedIconZone: {
+    minHeight: 88,
+    backgroundColor: '#E7DDBD',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  relatedIcon: {
+    color: colors.accent,
+    fontSize: 34,
+    lineHeight: 36,
+    fontWeight: '700',
+  },
+  relatedCopy: {
+    padding: 10,
+    gap: 2,
+  },
+  relatedEra: {
+    color: '#A27E70',
+    fontSize: 10,
+  },
+  relatedCardTitle: {
+    color: colors.text,
+    fontSize: 13,
+    lineHeight: 16,
+  },
+  relatedMeta: {
+    color: colors.textSoft,
+    fontSize: 10,
   },
 });

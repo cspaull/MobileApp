@@ -1,112 +1,335 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'react-native';
 import { Screen } from '../components/Screen';
-import { Card, Pill, PrimaryButton, RowSetting, StatTile, TitleBlock } from '../components/Ui';
 import { artifacts } from '../data/museumData';
 import { useAppContext } from '../state/AppContext';
-import { colors, spacing } from '../theme/theme';
+import { colors, radius, spacing } from '../theme/theme';
 
 export function ProfileScreen() {
   const { user, stats, favorites, updatePreferences, logout } = useAppContext();
   const favoriteArtifacts = artifacts.filter((artifact) => favorites.includes(artifact.id));
 
   return (
-    <Screen>
-      <TitleBlock
-        eyebrow={user.authMode === 'guest' ? 'Guest' : 'Profile'}
-        title={user.authMode === 'guest' ? 'Guest Mode' : user.fullName}
-        subtitle={user.authMode === 'guest' ? 'Not logged in' : user.email}
-      />
-
-      <View style={styles.statsRow}>
-        <StatTile value={String(stats.favoriteCount)} label="Favorite" />
-        <StatTile value={String(stats.viewedCount)} label="Viewed" />
-        <StatTile value={String(stats.visitCount)} label="Visit" />
+    <Screen contentStyle={styles.screenContent}>
+      <View style={styles.header}>
+        <View style={styles.profileIconBox}>
+        <Image
+          source={require('../../assets/guesticon.png')} // 👉 đổi đúng path của bạn
+          resizeMode="contain"
+        />
+        </View>
+        <View style={styles.profileCopy}>
+          <Text style={styles.profileName}>
+            {user.authMode === 'guest' ? 'GUEST' : user.fullName.toUpperCase()}
+          </Text>
+          <Text style={styles.profileMeta}>
+            {user.authMode === 'guest' ? 'Not logged in' : user.email}
+          </Text>
+          <View style={styles.modePill}>
+            <Text style={styles.modePillText}>
+              {user.authMode === 'guest' ? 'Guest Mode' : user.language}
+            </Text>
+          </View>
+        </View>
       </View>
 
-      <Card>
-        <Text style={styles.sectionTitle}>Favorite Artifacts</Text>
+      <View style={styles.pageBody}>
+        <View style={styles.statsRow}>
+          <StatBox label="Favourite" value={stats.favoriteCount} />
+          <StatBox label="Viewed" value={stats.viewedCount} />
+          <StatBox label="Visit" value={stats.visitCount} />
+        </View>
+
+        <SectionHeader title="Favourite Artifacts" />
         {favoriteArtifacts.length ? (
           favoriteArtifacts.map((artifact) => (
-            <View key={artifact.id} style={styles.favoriteRow}>
-              <View style={styles.favoriteCopy}>
+            <View key={artifact.id} style={styles.favoriteItem}>
+              <View>
                 <Text style={styles.favoriteTitle}>{artifact.title}</Text>
                 <Text style={styles.favoriteMeta}>{artifact.floorLabel}</Text>
               </View>
-              <Pill label={artifact.badge} active />
+              <Text style={styles.rowChevron}>&gt;</Text>
             </View>
           ))
         ) : (
-          <Text style={styles.emptyState}>
-            You do not have a favorite artifact yet. Save one from the artifact detail view.
-          </Text>
+          <View style={styles.emptyBlock}>
+            <Text style={styles.emptyText}>You do not have a favorite artifact yet.</Text>
+            <Text style={styles.emptySubtext}>
+              Press the button H when viewing an artifact to save it.
+            </Text>
+          </View>
         )}
-      </Card>
 
-      <Card>
-        <Text style={styles.sectionTitle}>Customize</Text>
-        <RowSetting
-          label="Notifications"
-          value={user.notificationsEnabled}
-          onValueChange={(value) => updatePreferences({ notificationsEnabled: value })}
+        <SectionHeader title="Customize" />
+        <SettingsRow
+          icon={require('../../assets/bell.png')}
+          title="Notification"
+          subtitle="New events and exhibitions"
+          onPress={() =>
+            updatePreferences({ notificationsEnabled: !user.notificationsEnabled })
+          }
         />
-        <View style={styles.languageRow}>
-          <Text style={styles.languageLabel}>Language</Text>
-          <Pill
-            label={user.language}
-            active
-            onPress={() =>
-              updatePreferences({ language: user.language === 'English' ? 'Vietnamese' : 'English' })
-            }
-          />
-        </View>
-      </Card>
 
-      <PrimaryButton label="Log Out" onPress={logout} variant="secondary" />
+        <SettingsRow
+          icon={require('../../assets/la.png')}
+          title="Language"
+          subtitle={user.language}
+          onPress={() =>
+            updatePreferences({ language: user.language === 'English' ? 'Vietnamese' : 'English' })
+          }
+        />
+
+        <Pressable style={styles.logoutButton} onPress={logout}>
+          <Text style={styles.logoutText}>LOG OUT</Text>
+        </Pressable>
+      </View>
     </Screen>
   );
 }
 
+function StatBox({ label, value }: { label: string; value: number }) {
+  return (
+    <View style={styles.statBox}>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function SectionHeader({ title }: { title: string }) {
+  return (
+    <View style={styles.sectionHeader}>
+      <View style={styles.sectionLine} />
+      <Text style={styles.sectionTitle}>{title}</Text>
+    </View>
+  );
+}
+
+function SettingsRow({
+  icon,
+  title,
+  subtitle,
+  onPress,
+}: {
+  icon: any;
+  title: string;
+  subtitle: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable style={styles.settingsRow} onPress={onPress}>
+      <View style={styles.settingsIconWrap}>
+        <Image
+          source={icon}
+          style={styles.settingsIconImage}
+          resizeMode="contain"
+        />
+      </View>
+      <View style={styles.settingsCopy}>
+        <Text style={styles.settingsTitle}>{title}</Text>
+        <Text style={styles.settingsSubtitle}>{subtitle}</Text>
+      </View>
+      <Text style={styles.rowChevron}>&gt;</Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
-  statsRow: {
+  screenContent: {
+    padding: 0,
+    gap: 0,
+  },
+  header: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.lg,
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    gap: spacing.md,
+    alignItems: 'center',
+  },
+  profileIconBox: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileIcon: {
+    color: colors.surfaceSoft,
+    fontSize: 30,
+    lineHeight: 30,
+    fontWeight: '700',
+  },
+  profileCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  profileName: {
+    color: colors.surface,
+    fontSize: 24,
+    fontWeight: '400',
+  },
+  profileMeta: {
+    color: '#E0BCB1',
+    fontSize: 13,
+    fontStyle: 'italic',
+  },
+  modePill: {
+    alignSelf: 'flex-start',
+    borderRadius: 6,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    marginTop: 4,
+  },
+  modePillText: {
+    color: colors.surface,
+    fontSize: 12,
+  },
+  pageBody: {
+    backgroundColor: '#E6DFC2',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xxl,
     gap: spacing.md,
   },
-  sectionTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  favoriteRow: {
+  statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     gap: spacing.sm,
   },
-  favoriteCopy: {
+  statBox: {
     flex: 1,
+    minHeight: 84,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: 'rgba(92, 15, 15, 0.14)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  statValue: {
+    color: colors.textMuted,
+    fontSize: 20,
+    fontWeight: '300',
+  },
+  statLabel: {
+    color: colors.accentSecondary,
+    fontSize: 14,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: 2,
+  },
+  sectionLine: {
+    width: 26,
+    height: 2,
+    backgroundColor: colors.accent,
+  },
+  sectionTitle: {
+    color: colors.accent,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  emptyBlock: {
+    alignItems: 'center',
     gap: 4,
+    paddingVertical: spacing.sm,
+  },
+  emptyText: {
+    color: colors.textSoft,
+    fontSize: 13,
+    fontStyle: 'italic',
+  },
+  emptySubtext: {
+    color: colors.textSoft,
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  favoriteItem: {
+    minHeight: 68,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: 'rgba(92, 15, 15, 0.14)',
+    paddingHorizontal: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   favoriteTitle: {
     color: colors.text,
+    fontSize: 16,
     fontWeight: '700',
   },
   favoriteMeta: {
     color: colors.textSoft,
+    fontSize: 12,
   },
-  emptyState: {
-    color: colors.textMuted,
-    lineHeight: 22,
+  rowChevron: {
+    color: colors.border,
+    fontSize: 24,
+    fontWeight: '700',
   },
-  languageRow: {
+  settingsRow: {
+    minHeight: 74,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: 'rgba(92, 15, 15, 0.14)',
+    paddingHorizontal: spacing.md,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: spacing.sm,
   },
-  languageLabel: {
+  settingsIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#F8ECE9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settingsIcon: {
+    color: colors.accentSecondary,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  settingsCopy: {
+    flex: 1,
+  },
+  settingsTitle: {
     color: colors.text,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  settingsSubtitle: {
+    color: colors.textSoft,
+    fontSize: 12,
+  },
+  logoutButton: {
+    marginTop: spacing.sm,
+    minHeight: 48,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#D19C8F',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutText: {
+    color: colors.accentSecondary,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  settingsIconImage: {
+    width: 18,
+    height: 18,
+    tintColor: colors.accentSecondary, // 👉 đổi màu nếu icon 1 màu
   },
 });

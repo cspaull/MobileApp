@@ -15,8 +15,11 @@
 4.  **Khởi động máy chủ:**
     ```bash
     npm run start
+    npx expo start --tunnel
+    npx expo start --tunnel --clear
     ```
 5.  **Quét mã QR:**
+    *chạy lệnh 2 3 lần nếu bị lỗi cannot read body lâu lâu nó bị lỗi
     * Sau khi lệnh chạy xong, một mã QR sẽ xuất hiện trên terminal.
     * Mở app **Expo Go** trên điện thoại.
     * **Android:** Chọn "Scan QR Code" và quét mã trên màn hình.

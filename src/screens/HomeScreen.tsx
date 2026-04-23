@@ -1,98 +1,351 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-
+import { Pressable, StyleSheet, Text, View, ImageBackground } from 'react-native';
+import { Image } from 'react-native';
 import { Screen } from '../components/Screen';
-import { Card, Pill, PrimaryButton, StatTile, TitleBlock } from '../components/Ui';
 import { artifacts } from '../data/museumData';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import { useAppContext } from '../state/AppContext';
-import { colors, spacing } from '../theme/theme';
+import { colors, radius, spacing } from '../theme/theme';
+
+const overviewStats = [
+  { label: 'Floors', value: '2', icon: require('../../assets/floor.png') },
+  { label: 'Artifacts', value: '40,000', icon: require('../../assets/artifacts.png') },
+  { label: 'Audio', value: '32', icon: require('../../assets/audio.png') },
+];
+
+const touristAreas = [
+  { title: '1st floor', subtitle: 'City History' },
+  { title: '2nd floor', subtitle: 'Resistance' },
+];
 
 export function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { user } = useAppContext();
   const featuredArtifacts = artifacts.slice(0, 3);
 
   return (
-    <Screen>
-      <TitleBlock
-        eyebrow="Welcome To"
-        title="Ho Chi Minh City Museum"
-        subtitle={`65 Ly Tu Trong, District 1 • 08:00 - 17:00 • Hello ${user.fullName}`}
-      />
+    <Screen contentStyle={styles.screenContent}>
+      <View style={styles.hero}>
+        <ImageBackground 
+          source={require('../../assets/backgr.png')} // Đường dẫn đến file hình của bạn
+          style={styles.hero}
+          imageStyle={styles.heroImage} // Để chỉnh độ mờ hoặc vị trí hình
+        >
+        <Text style={styles.heroEyebrow}>WELCOME TO</Text>
+        <Text style={styles.heroTitle}>Ho Chi Minh City{'\n'}Museum</Text>
 
-      <Card style={styles.heroCard}>
-        <Text style={styles.heroTitle}>Start your journey</Text>
-        <Text style={styles.heroCopy}>
-          The suggested roadmap is tailored for a compact, phone-friendly museum visit.
-        </Text>
-        <PrimaryButton label="Explore Artifacts" onPress={() => navigation.navigate('MainTabs')} />
-      </Card>
-
-      <View style={styles.statsRow}>
-        <StatTile value="2" label="Floors" />
-        <StatTile value="40,000" label="Artifacts" />
-        <StatTile value="32" label="Audio Guides" />
+        <View style={styles.heroChips}>
+          <View style={styles.heroChip}>
+            <Text style={styles.heroChipText}>65 Ly Tu Trong, District 1</Text>
+          </View>
+          <View style={styles.heroChip}>
+            <Text style={styles.heroChipText}>8:00-17:00</Text>
+          </View>
+        </View>
+        </ImageBackground>
       </View>
 
-      <Card>
-        <Text style={styles.sectionTitle}>Museum Overview</Text>
-        <View style={styles.pillRow}>
-          <Pill label="1st floor • City History" active />
-          <Pill label="2nd floor • Resistance" />
-        </View>
-      </Card>
-
-      <Text style={styles.sectionTitle}>Popular Artifacts</Text>
-
-      {featuredArtifacts.map((artifact) => (
+      <View style={styles.pageBody}>
         <Pressable
-          key={artifact.id}
-          onPress={() => navigation.navigate('ArtifactDetail', { artifactId: artifact.id })}
+          style={styles.journeyCard}
+          onPress={() => navigation.navigate('MainTabs', { screen: 'Schedule' })}
         >
-          <Card>
-            <Text style={styles.artifactTitle}>{artifact.title}</Text>
-            <Text style={styles.artifactMeta}>
-              {artifact.era} • {artifact.floorLabel}
-            </Text>
-            <Text style={styles.artifactSummary}>{artifact.badge}</Text>
-          </Card>
+          {/* <View style={styles.journeyIcon}>
+            <Text style={styles.journeyIconText}>&gt;</Text>
+          </View> */}
+          <View style={styles.journeyIcon}>
+            <Image
+              source={require('../../assets/uiw_map.png')} // 👉 đường dẫn icon của bạn
+              resizeMode="contain"
+            />
+          </View>
+          <View style={styles.journeyCopy}>
+            <Text style={styles.journeyTitle}>START YOUR JOURNEY</Text>
+            <Text style={styles.journeySubtitle}>The suggested roadmap for you</Text>
+          </View>
+          <Text style={styles.journeyArrow}>&gt;</Text>
         </Pressable>
-      ))}
+
+        <SectionHeader title="Museum Overview" />
+        <View style={styles.statsRow}>
+          {overviewStats.map((item) => (
+            <View key={item.label} style={styles.statCard}>
+              <Image
+                source={item.icon}
+                style={{ width: 24, height: 20 }}
+                resizeMode="contain"
+              />
+              <Text style={styles.statValue}>{item.value}</Text>
+              <Text style={styles.statLabel}>{item.label}</Text>
+            </View>
+          ))}
+        </View>
+
+        <SectionHeader title="Tourist Area" />
+        <View style={styles.areaRow}>
+          {touristAreas.map((area) => (
+            <View key={area.title} style={styles.areaCard}>
+              <Text style={styles.areaEyebrow}>{area.title}</Text>
+              <Text style={styles.areaTitle}>{area.subtitle}</Text>
+            </View>
+          ))}
+        </View>
+
+        <SectionHeader title="Popular Artifacts" />
+        <View style={styles.artifactList}>
+          {featuredArtifacts.map((artifact) => (
+            <Pressable
+              key={artifact.id}
+              style={styles.artifactCard}
+              onPress={() => navigation.navigate('ArtifactDetail', { artifactId: artifact.id })}
+            >
+              <View style={styles.artifactIconTile}>
+                <Text style={styles.artifactIcon}>{iconForArtifact(artifact.type)}</Text>
+              </View>
+              <View style={styles.artifactCopy}>
+                <Text style={styles.artifactTitle}>{artifact.title}</Text>
+                <Text style={styles.artifactMeta}>
+                  {artifact.era} - {artifact.floorLabel}
+                </Text>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{artifact.badge}</Text>
+                </View>
+              </View>
+              <Text style={styles.artifactChevron}>&gt;</Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
     </Screen>
   );
 }
 
+function SectionHeader({ title }: { title: string }) {
+  return (
+    <View style={styles.sectionHeader}>
+      <View style={styles.sectionLine} />
+      <Text style={styles.sectionTitle}>{title}</Text>
+    </View>
+  );
+}
+
+function iconForArtifact(type: string) {
+  switch (type) {
+    case 'Antiquity':
+      return 'U';
+    case 'Weapon':
+      return 'W';
+    case 'Map':
+      return 'M';
+    case 'Textile':
+      return 'T';
+    case 'Scale Model':
+      return 'B';
+    default:
+      return '*';
+  }
+}
+
 const styles = StyleSheet.create({
-  heroCard: {
-    backgroundColor: colors.accent,
+  screenContent: {
+    padding: 0,
+    gap: 0,
+  },
+  hero: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+    paddingBottom: 35,
+    backgroundColor: colors.accent, // Màu đỏ nền vẫn giữ để bổ trợ
+    overflow: 'hidden', // Đảm bảo hình không tràn ra ngoài
+  },
+  heroImage: {
+    opacity: 1, // Chỉnh độ "chìm" của hình (0.1 đến 0.5 là đẹp)
+    // width: '140%',
+    // height: '120%',
+    resizeMode: 'cover', // Hoặc 'contain' tùy vào tỉ lệ hình bạn muốn
+    // textAlign: 'right', 
+    // Nếu muốn hình nằm lệch sang phải như mẫu, có thể dùng các thuộc tính sau:
+    top: 0,
+  },
+  heroEyebrow: {
+    color: colors.surfaceSoft,
+    opacity: 0.9,
+    fontSize: 12,
+    letterSpacing: 0.8,
   },
   heroTitle: {
-    color: colors.authText,
-    fontSize: 24,
+    color: colors.surface,
+    fontSize: 26,
+    lineHeight: 30,
     fontWeight: '800',
+    fontStyle: 'italic',
+    marginTop: 4,
   },
-  heroCopy: {
-    color: colors.authText,
-    lineHeight: 22,
-    opacity: 0.9,
+  heroChips: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    flexWrap: 'wrap',
+    marginTop: spacing.lg,
+  },
+  heroChip: {
+    borderRadius: radius.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+  },
+  heroChipText: {
+    color: colors.surface,
+    fontSize: 12,
+  },
+  pageBody: {
+    backgroundColor: '#E6DFC2',
+    marginTop: -56,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xxl,
+    gap: spacing.md,
+  },
+  journeyCard: {
+    minHeight: 92,
+    borderRadius: radius.lg,
+    backgroundColor: colors.accent,
+    paddingHorizontal: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  journeyIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+  },
+  journeyIconText: {
+    color: colors.surfaceSoft,
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  journeyCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  journeyTitle: {
+    color: colors.surface,
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  journeySubtitle: {
+    color: colors.surfaceSoft,
+    fontSize: 13,
+    fontStyle: 'italic',
+  },
+  journeyArrow: {
+    color: colors.surfaceSoft,
+    fontSize: 28,
+    fontWeight: '700',
+    marginLeft: 'auto',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  sectionLine: {
+    width: 26,
+    height: 2,
+    backgroundColor: colors.accent,
+  },
+  sectionTitle: {
+    color: colors.accent,
+    fontSize: 18,
+    fontWeight: '700',
   },
   statsRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-  },
-  pillRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  sectionTitle: {
-    color: colors.text,
-    fontSize: 19,
-    fontWeight: '800',
+  statCard: {
+    flex: 1,
+    minHeight: 84,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(92, 15, 15, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  statIcon: {
+    color: colors.accent,
+    fontSize: 24,
+    lineHeight: 24,
+    fontWeight: '700',
+  },
+  statValue: {
+    color: colors.accent,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  statLabel: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontStyle: 'italic',
+  },
+  areaRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  areaCard: {
+    flex: 1,
+    minHeight: 86,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    justifyContent: 'space-between',
+    backgroundColor: colors.accent,
+  },
+  areaEyebrow: {
+    color: '#F6D3B5',
+    fontSize: 12,
+  },
+  areaTitle: {
+    color: colors.surface,
+    fontSize: 18,
+    lineHeight: 22,
+  },
+  artifactList: {
+    gap: spacing.sm,
+  },
+  artifactCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: 'rgba(92, 15, 15, 0.15)',
+    padding: spacing.md,
+  },
+  artifactIconTile: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EFE6CD',
+  },
+  artifactIcon: {
+    color: colors.accent,
+    fontSize: 28,
+    lineHeight: 28,
+    fontWeight: '700',
+  },
+  artifactCopy: {
+    flex: 1,
+    gap: 2,
   },
   artifactTitle: {
     color: colors.text,
@@ -101,11 +354,24 @@ const styles = StyleSheet.create({
   },
   artifactMeta: {
     color: colors.textMuted,
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12,
+    fontStyle: 'italic',
   },
-  artifactSummary: {
-    color: colors.textMuted,
-    fontSize: 14,
+  badge: {
+    alignSelf: 'flex-start',
+    marginTop: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+    backgroundColor: '#F4D4CF',
+  },
+  badgeText: {
+    color: colors.accentSecondary,
+    fontSize: 11,
+  },
+  artifactChevron: {
+    color: colors.border,
+    fontSize: 24,
+    fontWeight: '700',
   },
 });
