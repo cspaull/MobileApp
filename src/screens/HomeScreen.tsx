@@ -7,6 +7,7 @@ import { Screen } from '../components/Screen';
 import { artifacts } from '../data/museumData';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { colors, radius, spacing } from '../theme/theme';
+import { getArtifactCategory, getArtifactImageSource } from '../utils/museum';
 
 const overviewStats = [
   { label: 'Floors', value: '2', icon: require('../../assets/floor.png') },
@@ -100,7 +101,11 @@ export function HomeScreen() {
               onPress={() => navigation.navigate('ArtifactDetail', { artifactId: artifact.id })}
             >
               <View style={styles.artifactIconTile}>
-                <Text style={styles.artifactIcon}>{iconForArtifact(artifact.type)}</Text>
+                <Image
+                  source={getArtifactImageSource(artifact.id)}
+                  style={styles.artifactPreview}
+                  resizeMode="contain"
+                />
               </View>
               <View style={styles.artifactCopy}>
                 <Text style={styles.artifactTitle}>{artifact.title}</Text>
@@ -108,7 +113,7 @@ export function HomeScreen() {
                   {artifact.era} - {artifact.floorLabel}
                 </Text>
                 <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{artifact.badge}</Text>
+                  <Text style={styles.badgeText}>{getArtifactCategory(artifact)}</Text>
                 </View>
               </View>
               <Text style={styles.artifactChevron}>&gt;</Text>
@@ -127,23 +132,6 @@ function SectionHeader({ title }: { title: string }) {
       <Text style={styles.sectionTitle}>{title}</Text>
     </View>
   );
-}
-
-function iconForArtifact(type: string) {
-  switch (type) {
-    case 'Antiquity':
-      return 'U';
-    case 'Weapon':
-      return 'W';
-    case 'Map':
-      return 'M';
-    case 'Textile':
-      return 'T';
-    case 'Scale Model':
-      return 'B';
-    default:
-      return '*';
-  }
 }
 
 const styles = StyleSheet.create({
@@ -342,6 +330,10 @@ const styles = StyleSheet.create({
     fontSize: 28,
     lineHeight: 28,
     fontWeight: '700',
+  },
+  artifactPreview: {
+    width: 36,
+    height: 36,
   },
   artifactCopy: {
     flex: 1,

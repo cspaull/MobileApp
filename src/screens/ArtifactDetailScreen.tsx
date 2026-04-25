@@ -1,13 +1,19 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Screen } from '../components/Screen';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { useAppContext } from '../state/AppContext';
 import { colors, radius, spacing } from '../theme/theme';
-import { getArtifactById, getRelatedArtifacts } from '../utils/museum';
+import {
+  getArtifactById,
+  getArtifactCategory,
+  getArtifactImageSource,
+  getArtifactLocationLabel,
+  getRelatedArtifacts,
+} from '../utils/museum';
 
 export function ArtifactDetailScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -87,16 +93,18 @@ export function ArtifactDetailScreen() {
         </Pressable>
 
         <View style={styles.heroDiscOuter}>
-          <View style={styles.heroDiscInner}>
-            <Text style={styles.heroGlyph}>{iconForArtifact(artifact.type)}</Text>
-          </View>
+          <Image
+            source={getArtifactImageSource(artifact.id)}
+            style={styles.heroImage}
+            resizeMode="contain"
+          />
         </View>
       </View>
 
       <Text style={styles.era}>{artifact.era}</Text>
       <Text style={styles.title}>{artifact.title}</Text>
       <Text style={styles.meta}>
-        {artifact.dynastyOrCollection} - {artifact.floorLabel}, {artifact.roomCode}
+        {getArtifactCategory(artifact)} - {getArtifactLocationLabel(artifact)}
       </Text>
 
       <View style={styles.tagRow}>
@@ -151,12 +159,16 @@ export function ArtifactDetailScreen() {
               <Text style={styles.relatedBadgeText}>{related.floorLabel}</Text>
             </View>
             <View style={styles.relatedIconZone}>
-              <Text style={styles.relatedIcon}>{iconForArtifact(related.type)}</Text>
+              <Image
+                source={getArtifactImageSource(related.id)}
+                style={styles.relatedImage}
+                resizeMode="contain"
+              />
             </View>
             <View style={styles.relatedCopy}>
               <Text style={styles.relatedEra}>{related.era}</Text>
               <Text style={styles.relatedCardTitle}>{related.title}</Text>
-              <Text style={styles.relatedMeta}>{related.dynastyOrCollection}</Text>
+              <Text style={styles.relatedMeta}>{getArtifactCategory(related)}</Text>
             </View>
           </Pressable>
         ))}
@@ -178,23 +190,6 @@ function formatTime(totalSeconds: number) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-}
-
-function iconForArtifact(type: string) {
-  switch (type) {
-    case 'Antiquity':
-      return 'U';
-    case 'Weapon':
-      return 'W';
-    case 'Map':
-      return 'M';
-    case 'Textile':
-      return 'T';
-    case 'Scale Model':
-      return 'B';
-    default:
-      return '*';
-  }
 }
 
 const styles = StyleSheet.create({
@@ -268,25 +263,12 @@ const styles = StyleSheet.create({
     width: 208,
     height: 208,
     borderRadius: 104,
-    backgroundColor: '#7B4A2E',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroDiscInner: {
-    width: 186,
-    height: 186,
-    borderRadius: 93,
-    borderWidth: 3,
-    borderColor: '#C58A57',
-    backgroundColor: '#3E2C25',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroGlyph: {
-    color: '#E7A567',
-    fontSize: 84,
-    lineHeight: 88,
-    fontWeight: '700',
+  heroImage: {
+    width: 400,
+    height: 400,
   },
   era: {
     color: colors.accentSecondary,
@@ -447,11 +429,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  relatedIcon: {
-    color: colors.accent,
-    fontSize: 34,
-    lineHeight: 36,
-    fontWeight: '700',
+  relatedImage: {
+    width: 66,
+    height: 66,
   },
   relatedCopy: {
     padding: 10,

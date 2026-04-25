@@ -35,7 +35,7 @@ export function AuthScreen() {
       <View style={styles.centered}>
         {/* <Text style={styles.museumIcon}>M</Text> */}
         <Image
-          source={require('D:/museumcompa/assets/museumlog2.png')} // đường dẫn tới ảnh của bạn
+          source={require('../../assets/museumlog2.png')} // lmao để đường cũ thì sao mà chạy trên máy khác :)))
           style={styles.logo}
         />
         <Text style={styles.title}>{titleCopy.title}</Text>
