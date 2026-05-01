@@ -139,6 +139,7 @@ const styles = StyleSheet.create({
   screenContent: {
     padding: 0,
     gap: 0,
+    backgroundColor: '#E6DFC2',
   },
   header: {
     backgroundColor: colors.accent,
@@ -170,12 +171,12 @@ const styles = StyleSheet.create({
   },
   profileName: {
     color: colors.surface,
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: '400',
   },
   profileMeta: {
     color: '#E0BCB1',
-    fontSize: 13,
+    fontSize: 15,
     fontStyle: 'italic',
   },
   modePill: {
@@ -188,13 +189,14 @@ const styles = StyleSheet.create({
   },
   modePillText: {
     color: colors.surface,
-    fontSize: 12,
+    fontSize: 15,
   },
   pageBody: {
+    flexGrow: 1,
     backgroundColor: '#E6DFC2',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.lg,
     gap: spacing.md,
   },
   statsRow: {
@@ -219,7 +221,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     color: colors.accentSecondary,
-    fontSize: 14,
+    fontSize: 15,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -234,7 +236,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: colors.accent,
-    fontSize: 18,
+    fontSize: 25,
     fontWeight: '700',
   },
   emptyBlock: {
@@ -244,12 +246,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: colors.textSoft,
-    fontSize: 13,
+    fontSize: 15,
     fontStyle: 'italic',
   },
   emptySubtext: {
     color: colors.textSoft,
-    fontSize: 13,
+    fontSize: 15,
     textAlign: 'center',
   },
   favoriteItem: {
@@ -265,12 +267,12 @@ const styles = StyleSheet.create({
   },
   favoriteTitle: {
     color: colors.text,
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '700',
   },
   favoriteMeta: {
     color: colors.textSoft,
-    fontSize: 12,
+    fontSize: 15,
   },
   rowChevron: {
     color: colors.border,
@@ -306,12 +308,12 @@ const styles = StyleSheet.create({
   },
   settingsTitle: {
     color: colors.text,
-    fontSize: 17,
+    fontSize: 20,
     fontWeight: '700',
   },
   settingsSubtitle: {
     color: colors.textSoft,
-    fontSize: 12,
+    fontSize: 15,
   },
   logoutButton: {
     marginTop: spacing.sm,
@@ -324,7 +326,7 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: colors.accentSecondary,
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '500',
   },
   settingsIconImage: {

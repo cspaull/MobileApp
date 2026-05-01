@@ -227,15 +227,15 @@ const styles = StyleSheet.create({
   },
   heading: {
     color: colors.accent,
-    fontSize: 34,
-    lineHeight: 38,
+    fontSize: 30,
+    lineHeight: 34,
     fontWeight: '900',
   },
   subheading: {
     marginTop: 6,
     color: colors.accent,
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: 25,
+    lineHeight: 30,
     fontWeight: '800',
   },
   locationBadge: {
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     borderColor: '#B9B9B9',
   },
   floorTabText: {
-    fontSize: 15,
+    fontSize: 20,
     fontWeight: '700',
   },
   floorTabTextActive: {
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
   },
   mapUtilityIcon: {
     color: '#5C7CE2',
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
   },
   currentLocationPin: {
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
   },
   markerLabel: {
     color: colors.text,
-    fontSize: 12,
+    fontSize: 15,
     fontWeight: '600',
   },
   markerLabelActive: {
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
   },
   legendText: {
     color: '#3A342E',
-    fontSize: 14,
+    fontSize: 15,
   },
   roomCard: {
     minHeight: 96,
@@ -414,8 +414,8 @@ const styles = StyleSheet.create({
   },
   roomIconText: {
     color: '#F7E5C3',
-    fontSize: 10,
-    lineHeight: 12,
+    fontSize: 15,
+    lineHeight: 18,
     fontWeight: '800',
     textAlign: 'center',
   },
@@ -425,18 +425,18 @@ const styles = StyleSheet.create({
   },
   roomTitle: {
     color: colors.white,
-    fontSize: 17,
-    lineHeight: 22,
+    fontSize: 20,
+    lineHeight: 25,
     fontWeight: '700',
   },
   roomMeta: {
     color: '#E7C4A7',
-    fontSize: 14,
+    fontSize: 15,
     fontStyle: 'italic',
   },
   roomAction: {
     color: '#F4D4B0',
-    fontSize: 15,
+    fontSize: 20,
     fontWeight: '700',
   },
 });

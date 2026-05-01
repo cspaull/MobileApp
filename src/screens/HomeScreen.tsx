@@ -1,8 +1,8 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View, ImageBackground } from 'react-native';
-import { Image } from 'react-native';
+import { Image, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+
 import { Screen } from '../components/Screen';
 import { artifacts } from '../data/museumData';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -25,101 +25,99 @@ export function HomeScreen() {
   const featuredArtifacts = artifacts.slice(0, 3);
 
   return (
-    <Screen contentStyle={styles.screenContent}>
-      <View style={styles.hero}>
-        <ImageBackground 
-          source={require('../../assets/backgr.png')} // Đường dẫn đến file hình của bạn
+    <Screen scrollable={false} contentStyle={styles.screenContent}>
+      <View style={styles.screenBody}>
+        <ImageBackground
+          source={require('../../assets/backgr.png')}
           style={styles.hero}
-          imageStyle={styles.heroImage} // Để chỉnh độ mờ hoặc vị trí hình
+          imageStyle={styles.heroImage}
         >
-        <Text style={styles.heroEyebrow}>WELCOME TO</Text>
-        <Text style={styles.heroTitle}>Ho Chi Minh City{'\n'}Museum</Text>
+          <View style={styles.heroContent}>
+            <Text style={styles.heroEyebrow}>WELCOME TO</Text>
+            <Text style={styles.heroTitle}>Ho Chi Minh City{'\n'}Museum</Text>
 
-        <View style={styles.heroChips}>
-          <View style={styles.heroChip}>
-            <Text style={styles.heroChipText}>65 Ly Tu Trong, District 1</Text>
+            <View style={styles.heroChips}>
+              <View style={styles.heroChip}>
+                <Text style={styles.heroChipText}>65 Ly Tu Trong, District 1</Text>
+              </View>
+              <View style={styles.heroChip}>
+                <Text style={styles.heroChipText}>8:00-17:00</Text>
+              </View>
+            </View>
           </View>
-          <View style={styles.heroChip}>
-            <Text style={styles.heroChipText}>8:00-17:00</Text>
-          </View>
-        </View>
         </ImageBackground>
-      </View>
 
-      <View style={styles.pageBody}>
-        <Pressable
-          style={styles.journeyCard}
-          onPress={() => navigation.navigate('MainTabs', { screen: 'Schedule' })}
+        <ScrollView
+          style={styles.contentScroll}
+          contentContainerStyle={styles.contentScrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          {/* <View style={styles.journeyIcon}>
-            <Text style={styles.journeyIconText}>&gt;</Text>
-          </View> */}
-          <View style={styles.journeyIcon}>
-            <Image
-              source={require('../../assets/uiw_map.png')} // 👉 đường dẫn icon của bạn
-              resizeMode="contain"
-            />
-          </View>
-          <View style={styles.journeyCopy}>
-            <Text style={styles.journeyTitle}>START YOUR JOURNEY</Text>
-            <Text style={styles.journeySubtitle}>The suggested roadmap for you</Text>
-          </View>
-          <Text style={styles.journeyArrow}>&gt;</Text>
-        </Pressable>
-
-        <SectionHeader title="Museum Overview" />
-        <View style={styles.statsRow}>
-          {overviewStats.map((item) => (
-            <View key={item.label} style={styles.statCard}>
-              <Image
-                source={item.icon}
-                style={{ width: 24, height: 20 }}
-                resizeMode="contain"
-              />
-              <Text style={styles.statValue}>{item.value}</Text>
-              <Text style={styles.statLabel}>{item.label}</Text>
-            </View>
-          ))}
-        </View>
-
-        <SectionHeader title="Tourist Area" />
-        <View style={styles.areaRow}>
-          {touristAreas.map((area) => (
-            <View key={area.title} style={styles.areaCard}>
-              <Text style={styles.areaEyebrow}>{area.title}</Text>
-              <Text style={styles.areaTitle}>{area.subtitle}</Text>
-            </View>
-          ))}
-        </View>
-
-        <SectionHeader title="Popular Artifacts" />
-        <View style={styles.artifactList}>
-          {featuredArtifacts.map((artifact) => (
+          <View style={styles.pageBody}>
             <Pressable
-              key={artifact.id}
-              style={styles.artifactCard}
-              onPress={() => navigation.navigate('ArtifactDetail', { artifactId: artifact.id })}
+              style={styles.journeyCard}
+              onPress={() => navigation.navigate('MainTabs', { screen: 'Schedule' })}
             >
-              <View style={styles.artifactIconTile}>
-                <Image
-                  source={getArtifactImageSource(artifact.id)}
-                  style={styles.artifactPreview}
-                  resizeMode="contain"
-                />
+              <View style={styles.journeyIcon}>
+                <Image source={require('../../assets/uiw_map.png')} resizeMode="contain" />
               </View>
-              <View style={styles.artifactCopy}>
-                <Text style={styles.artifactTitle}>{artifact.title}</Text>
-                <Text style={styles.artifactMeta}>
-                  {artifact.era} - {artifact.floorLabel}
-                </Text>
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{getArtifactCategory(artifact)}</Text>
-                </View>
+              <View style={styles.journeyCopy}>
+                <Text style={styles.journeyTitle}>START YOUR JOURNEY</Text>
+                <Text style={styles.journeySubtitle}>The suggested roadmap for you</Text>
               </View>
-              <Text style={styles.artifactChevron}>&gt;</Text>
+              <Text style={styles.journeyArrow}>&gt;</Text>
             </Pressable>
-          ))}
-        </View>
+
+            <SectionHeader title="Museum Overview" />
+            <View style={styles.statsRow}>
+              {overviewStats.map((item) => (
+                <View key={item.label} style={styles.statCard}>
+                  <Image source={item.icon} style={styles.statImage} resizeMode="contain" />
+                  <Text style={styles.statValue}>{item.value}</Text>
+                  <Text style={styles.statLabel}>{item.label}</Text>
+                </View>
+              ))}
+            </View>
+
+            <SectionHeader title="Tourist Area" />
+            <View style={styles.areaRow}>
+              {touristAreas.map((area) => (
+                <View key={area.title} style={styles.areaCard}>
+                  <Text style={styles.areaEyebrow}>{area.title}</Text>
+                  <Text style={styles.areaTitle}>{area.subtitle}</Text>
+                </View>
+              ))}
+            </View>
+
+            <SectionHeader title="Popular Artifacts" />
+            <View style={styles.artifactList}>
+              {featuredArtifacts.map((artifact) => (
+                <Pressable
+                  key={artifact.id}
+                  style={styles.artifactCard}
+                  onPress={() => navigation.navigate('ArtifactDetail', { artifactId: artifact.id })}
+                >
+                  <View style={styles.artifactIconTile}>
+                    <Image
+                      source={getArtifactImageSource(artifact.id)}
+                      style={styles.artifactPreview}
+                      resizeMode="contain"
+                    />
+                  </View>
+                  <View style={styles.artifactCopy}>
+                    <Text style={styles.artifactTitle}>{artifact.title}</Text>
+                    <Text style={styles.artifactMeta}>
+                      {artifact.era} - {artifact.floorLabel}
+                    </Text>
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>{getArtifactCategory(artifact)}</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.artifactChevron}>&gt;</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
       </View>
     </Screen>
   );
@@ -138,33 +136,43 @@ const styles = StyleSheet.create({
   screenContent: {
     padding: 0,
     gap: 0,
+    flex: 1,
+  },
+  screenBody: {
+    flex: 1,
   },
   hero: {
+    height: 200,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
-    paddingBottom: 35,
-    backgroundColor: colors.accent, // Màu đỏ nền vẫn giữ để bổ trợ
-    overflow: 'hidden', // Đảm bảo hình không tràn ra ngoài
+    paddingBottom: 25,
+    justifyContent: 'flex-end',
+    backgroundColor: colors.accent,
+    overflow: 'hidden',
   },
   heroImage: {
-    opacity: 1, // Chỉnh độ "chìm" của hình (0.1 đến 0.5 là đẹp)
-    // width: '140%',
-    // height: '120%',
-    resizeMode: 'cover', // Hoặc 'contain' tùy vào tỉ lệ hình bạn muốn
-    // textAlign: 'right', 
-    // Nếu muốn hình nằm lệch sang phải như mẫu, có thể dùng các thuộc tính sau:
-    top: 0,
+    resizeMode: 'cover',
+  },
+  contentScroll: {
+    flex: 1,
+    backgroundColor: '#E6DFC2',
+  },
+  contentScrollContent: {
+    paddingBottom: 0,
+  },
+  heroContent: {
+    transform: [{ translateY: -12 }],
   },
   heroEyebrow: {
     color: colors.surfaceSoft,
     opacity: 0.9,
-    fontSize: 12,
+    fontSize: 15,
     letterSpacing: 0.8,
   },
   heroTitle: {
     color: colors.surface,
-    fontSize: 26,
-    lineHeight: 30,
+    fontSize: 30,
+    lineHeight: 34,
     fontWeight: '800',
     fontStyle: 'italic',
     marginTop: 4,
@@ -183,15 +191,14 @@ const styles = StyleSheet.create({
   },
   heroChipText: {
     color: colors.surface,
-    fontSize: 12,
+    fontSize: 15,
   },
   pageBody: {
     backgroundColor: '#E6DFC2',
-    marginTop: -56,
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingTop: spacing.lg,
     paddingBottom: spacing.xxl,
     gap: spacing.md,
   },
@@ -212,11 +219,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.12)',
   },
-  journeyIconText: {
-    color: colors.surfaceSoft,
-    fontSize: 24,
-    fontWeight: '700',
-  },
   journeyCopy: {
     flex: 1,
     gap: 2,
@@ -228,7 +230,7 @@ const styles = StyleSheet.create({
   },
   journeySubtitle: {
     color: colors.surfaceSoft,
-    fontSize: 13,
+    fontSize: 15,
     fontStyle: 'italic',
   },
   journeyArrow: {
@@ -249,7 +251,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: colors.accent,
-    fontSize: 18,
+    fontSize: 25,
     fontWeight: '700',
   },
   statsRow: {
@@ -267,20 +269,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 4,
   },
-  statIcon: {
-    color: colors.accent,
-    fontSize: 24,
-    lineHeight: 24,
-    fontWeight: '700',
+  statImage: {
+    width: 24,
+    height: 20,
   },
   statValue: {
     color: colors.accent,
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '700',
   },
   statLabel: {
     color: colors.textMuted,
-    fontSize: 12,
+    fontSize: 15,
     fontStyle: 'italic',
   },
   areaRow: {
@@ -297,12 +297,12 @@ const styles = StyleSheet.create({
   },
   areaEyebrow: {
     color: '#F6D3B5',
-    fontSize: 12,
+    fontSize: 15,
   },
   areaTitle: {
     color: colors.surface,
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: 20,
+    lineHeight: 24,
   },
   artifactList: {
     gap: spacing.sm,
@@ -325,12 +325,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#EFE6CD',
   },
-  artifactIcon: {
-    color: colors.accent,
-    fontSize: 28,
-    lineHeight: 28,
-    fontWeight: '700',
-  },
   artifactPreview: {
     width: 36,
     height: 36,
@@ -341,12 +335,12 @@ const styles = StyleSheet.create({
   },
   artifactTitle: {
     color: colors.text,
-    fontSize: 17,
+    fontSize: 20,
     fontWeight: '700',
   },
   artifactMeta: {
     color: colors.textMuted,
-    fontSize: 12,
+    fontSize: 15,
     fontStyle: 'italic',
   },
   badge: {
@@ -359,7 +353,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: colors.accentSecondary,
-    fontSize: 11,
+    fontSize: 15,
   },
   artifactChevron: {
     color: colors.border,

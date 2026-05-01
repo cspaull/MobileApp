@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   },
   fallbackTitle: {
     color: colors.text,
-    fontSize: 24,
+    fontSize: 25,
     fontWeight: '700',
   },
   backButton: {
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   },
   era: {
     color: colors.accentSecondary,
-    fontSize: 16,
+    fontSize: 15,
     marginTop: spacing.sm,
   },
   title: {
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     color: '#B35A4B',
-    fontSize: 12,
+    fontSize: 15,
   },
   audioCard: {
     minHeight: 92,
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   },
   audioTitle: {
     color: colors.surface,
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: '700',
   },
   audioProgressTrack: {
@@ -346,12 +346,12 @@ const styles = StyleSheet.create({
   },
   audioTime: {
     color: '#E4CCC6',
-    fontSize: 12,
+    fontSize: 15,
   },
   body: {
     color: colors.text,
-    fontSize: 16,
-    lineHeight: 23,
+    fontSize: 20,
+    lineHeight: 28,
   },
   dividerRow: {
     paddingVertical: 2,
@@ -376,11 +376,11 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     color: '#9E8B76',
-    fontSize: 11,
+    fontSize: 15,
   },
   infoValue: {
     color: colors.text,
-    fontSize: 15,
+    fontSize: 20,
   },
   relatedHeader: {
     flexDirection: 'row',
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   },
   relatedTitle: {
     color: colors.accent,
-    fontSize: 18,
+    fontSize: 25,
     fontWeight: '700',
   },
   relatedRow: {
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
   },
   relatedBadgeText: {
     color: '#CA6D5D',
-    fontSize: 10,
+    fontSize: 15,
   },
   relatedIconZone: {
     minHeight: 88,
@@ -439,15 +439,15 @@ const styles = StyleSheet.create({
   },
   relatedEra: {
     color: '#A27E70',
-    fontSize: 10,
+    fontSize: 15,
   },
   relatedCardTitle: {
     color: colors.text,
-    fontSize: 13,
-    lineHeight: 16,
+    fontSize: 20,
+    lineHeight: 24,
   },
   relatedMeta: {
     color: colors.textSoft,
-    fontSize: 10,
+    fontSize: 15,
   },
 });

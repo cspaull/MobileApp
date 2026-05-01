@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Image } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+
 import { Screen } from '../components/Screen';
 import { useAppContext } from '../state/AppContext';
 import { colors, radius, spacing } from '../theme/theme';
@@ -9,12 +9,19 @@ type AuthMode = 'sign-in' | 'sign-up';
 
 export function AuthScreen() {
   const { signIn, continueAsGuest } = useAppContext();
+  const { height } = useWindowDimensions();
   const [mode, setMode] = useState<AuthMode>('sign-in');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const submitLabel = mode === 'sign-in' ? 'SIGN IN' : 'SIGN UP';
+  const handleSocialSignIn = (provider: 'Google' | 'Facebook') => {
+    signIn({
+      fullName: `${provider} Visitor`,
+      email: `${provider.toLowerCase()}@museum-social.local`,
+    });
+  };
   const titleCopy = useMemo(
     () => ({
       title: 'HO CHI MINH CITY MUSEUM',
@@ -33,68 +40,87 @@ export function AuthScreen() {
       </View>
 
       <View style={styles.centered}>
-        {/* <Text style={styles.museumIcon}>M</Text> */}
-        <Image
-          source={require('../../assets/museumlog2.png')} // lmao để đường cũ thì sao mà chạy trên máy khác :)))
-          style={styles.logo}
-        />
-        <Text style={styles.title}>{titleCopy.title}</Text>
-        <Text style={styles.subtitle}>{titleCopy.subtitle}</Text>
+        <View style={[styles.mainSection, { minHeight: Math.max(height - 180, 560) }]}>
+          <Image
+            source={require('../../assets/museumlog2.png')}
+            style={styles.logo}
+          />
+          <Text style={styles.title}>{titleCopy.title}</Text>
+          <Text style={styles.subtitle}>{titleCopy.subtitle}</Text>
 
-        <View style={styles.segmentedControl}>
-          {(['sign-in', 'sign-up'] as const).map((item) => {
-            const active = item === mode;
+          <View style={styles.segmentedControl}>
+            {(['sign-in', 'sign-up'] as const).map((item) => {
+              const active = item === mode;
 
-            return (
-              <Pressable
-                key={item}
-                style={[styles.segment, active && styles.segmentActive]}
-                onPress={() => setMode(item)}
-              >
-                <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
-                  {item === 'sign-in' ? 'SIGN IN' : 'SIGN UP'}
-                </Text>
-              </Pressable>
-            );
-          })}
+              return (
+                <Pressable
+                  key={item}
+                  style={[styles.segment, active && styles.segmentActive]}
+                  onPress={() => setMode(item)}
+                >
+                  <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
+                    {item === 'sign-in' ? 'SIGN IN' : 'SIGN UP'}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <View style={styles.form}>
+            {mode === 'sign-up' ? (
+              <AuthField label="FULL NAME" value={fullName} onChangeText={setFullName} />
+            ) : null}
+            <AuthField
+              label="EMAIL"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="email@example.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <AuthField
+              label="PASSWORD"
+              value={password}
+              onChangeText={setPassword}
+              placeholder="**********"
+              secureTextEntry
+            />
+          </View>
+
+          <Pressable
+            style={styles.primaryButton}
+            onPress={() =>
+              signIn({
+                fullName: mode === 'sign-up' ? fullName : undefined,
+                email: email || 'guest@museum.vn',
+              })
+            }
+          >
+            <Text style={styles.primaryButtonText}>{submitLabel}</Text>
+          </Pressable>
+
+          <Pressable style={styles.guestButton} onPress={continueAsGuest}>
+            <Text style={styles.guestButtonText}>Continue without login -&gt;</Text>
+          </Pressable>
         </View>
 
-        <View style={styles.form}>
-          {mode === 'sign-up' ? (
-            <AuthField label="FULL NAME" value={fullName} onChangeText={setFullName} />
-          ) : null}
-          <AuthField
-            label="EMAIL"
-            value={email}
-            onChangeText={setEmail}
-            placeholder="email@example.com"
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <AuthField
-            label="PASSWORD"
-            value={password}
-            onChangeText={setPassword}
-            placeholder="**********"
-            secureTextEntry
-          />
+        <View style={styles.socialSection}>
+          <Text style={styles.socialHeading}>SIGN IN WITH:</Text>
+
+          <View style={styles.socialButtons}>
+            <Pressable style={styles.socialButton} onPress={() => handleSocialSignIn('Google')}>
+              <View style={[styles.socialBadge, styles.googleBadge]}>
+                <Text style={[styles.socialBadgeText, styles.googleBadgeText]}>G</Text>
+              </View>
+            </Pressable>
+
+            <Pressable style={styles.socialButton} onPress={() => handleSocialSignIn('Facebook')}>
+              <View style={[styles.socialBadge, styles.facebookBadge]}>
+                <Text style={[styles.socialBadgeText, styles.facebookBadgeText]}>f</Text>
+              </View>
+            </Pressable>
+          </View>
         </View>
-
-        <Pressable
-          style={styles.primaryButton}
-          onPress={() =>
-            signIn({
-              fullName: mode === 'sign-up' ? fullName : undefined,
-              email: email || 'guest@museum.vn',
-            })
-          }
-        >
-          <Text style={styles.primaryButtonText}>{submitLabel}</Text>
-        </Pressable>
-
-        <Pressable style={styles.guestButton} onPress={continueAsGuest}>
-          <Text style={styles.guestButtonText}>Continue without login -&gt;</Text>
-        </Pressable>
       </View>
     </Screen>
   );
@@ -120,9 +146,9 @@ function AuthField({ label, ...props }: AuthFieldProps) {
 const styles = StyleSheet.create({
   screenContent: {
     flexGrow: 1,
-    justifyContent: 'center',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xxl,
+    paddingTop: 100,
+    paddingBottom: spacing.xxl,
   },
   patternOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -152,19 +178,18 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '-45deg' }],
   },
   centered: {
-    gap: spacing.md,
+    width: '100%',
     alignItems: 'center',
   },
-  museumIcon: {
-    color: colors.authText,
-    fontSize: 54,
-    lineHeight: 56,
-    fontWeight: '700',
+  mainSection: {
+    width: '100%',
+    justifyContent: 'center',
+    gap: spacing.md,
   },
   title: {
     color: colors.authText,
-    fontSize: 34,
-    lineHeight: 38,
+    fontSize: 25,
+    lineHeight: 34,
     fontWeight: '300',
     letterSpacing: 0.8,
     textAlign: 'center',
@@ -173,8 +198,10 @@ const styles = StyleSheet.create({
     marginTop: -10,
     color: colors.authText,
     opacity: 0.9,
-    fontSize: 16,
+    fontSize: 20,
+    lineHeight: 30,
     fontStyle: 'italic',
+    textAlign: 'center',
   },
   segmentedControl: {
     marginTop: spacing.lg,
@@ -197,7 +224,7 @@ const styles = StyleSheet.create({
   segmentText: {
     color: colors.authText,
     fontWeight: '800',
-    fontSize: 16,
+    fontSize: 20,
   },
   segmentTextActive: {
     color: colors.accent,
@@ -212,7 +239,7 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     color: colors.authText,
-    fontSize: 14,
+    fontSize: 15,
   },
   input: {
     minHeight: 56,
@@ -222,7 +249,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.06)',
     paddingHorizontal: spacing.md,
     color: colors.authText,
-    fontSize: 16,
+    fontSize: 20,
   },
   primaryButton: {
     width: '100%',
@@ -235,7 +262,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: colors.accent,
-    fontSize: 17,
+    fontSize: 20,
     fontWeight: '800',
   },
   guestButton: {
@@ -244,6 +271,56 @@ const styles = StyleSheet.create({
   guestButtonText: {
     color: colors.authText,
     fontSize: 15,
+    textAlign: 'center',
+  },
+  socialSection: {
+    width: '100%',
+    gap: spacing.sm,
+    marginTop: 0,
+    paddingBottom: spacing.lg,
+  },
+  socialHeading: {
+    color: colors.authText,
+    fontSize: 15,
+    letterSpacing: 0.6,
+    alignSelf: 'flex-start',
+  },
+  socialButtons: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingTop: spacing.xs,
+  },
+  socialButton: {
+    width: 88,
+    height: 88,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  socialBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleBadge: {
+    backgroundColor: '#FFFFFF',
+  },
+  facebookBadge: {
+    backgroundColor: '#1877F2',
+  },
+  socialBadgeText: {
+    fontSize: 32,
+    fontWeight: '800',
+    lineHeight: 36,
+  },
+  googleBadgeText: {
+    color: colors.accentStrong,
+  },
+  facebookBadgeText: {
+    color: colors.white,
   },
   logo: {
     width: 350,

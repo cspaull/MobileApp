@@ -132,14 +132,14 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: colors.accent,
-    fontSize: 26,
-    lineHeight: 30,
+    fontSize: 30,
+    lineHeight: 34,
     fontWeight: '400',
   },
   headerSubtitle: {
     color: colors.accent,
-    fontSize: 22,
-    lineHeight: 26,
+    fontSize: 25,
+    lineHeight: 30,
     fontWeight: '400',
   },
   filterButton: {
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     color: colors.text,
-    fontSize: 16,
+    fontSize: 20,
     fontStyle: 'italic',
     paddingVertical: 0,
   },
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     borderColor: '#B9B9B9',
   },
   filterPillText: {
-    fontSize: 16,
+    fontSize: 20,
     color: colors.text,
   },
   filterPillTextActive: {
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
   },
   floorBadgeText: {
     color: '#B64735',
-    fontSize: 12,
+    fontSize: 15,
   },
   cardCopy: {
     minHeight: 88,
@@ -259,19 +259,19 @@ const styles = StyleSheet.create({
   },
   cardEra: {
     color: '#B45B52',
-    fontSize: 13,
+    fontSize: 15,
     fontStyle: 'italic',
   },
   cardTitle: {
     marginTop: 2,
     color: colors.text,
-    fontSize: 15,
-    lineHeight: 19,
+    fontSize: 20,
+    lineHeight: 24,
   },
   cardMeta: {
     marginTop: 1,
     color: colors.textSoft,
-    fontSize: 12,
+    fontSize: 15,
     fontStyle: 'italic',
   },
 });

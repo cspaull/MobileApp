@@ -117,11 +117,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.background,
-    gap: 16,
   },
   loadingText: {
     color: colors.textMuted,
-    fontSize: 15,
+    fontSize: 20,
   },
   tabBar: {
     backgroundColor: '#FFFDF5',
@@ -131,7 +130,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   tabLabel: {
-    fontSize: 11,
+    fontSize: 15,
     fontWeight: '600',
   },
   iconImage: {
