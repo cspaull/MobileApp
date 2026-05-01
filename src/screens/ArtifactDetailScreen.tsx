@@ -1,13 +1,19 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Screen } from '../components/Screen';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { useAppContext } from '../state/AppContext';
 import { colors, radius, spacing } from '../theme/theme';
-import { getArtifactById, getRelatedArtifacts } from '../utils/museum';
+import {
+  getArtifactById,
+  getArtifactCategory,
+  getArtifactImageSource,
+  getArtifactLocationLabel,
+  getRelatedArtifacts,
+} from '../utils/museum';
 
 export function ArtifactDetailScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -87,16 +93,18 @@ export function ArtifactDetailScreen() {
         </Pressable>
 
         <View style={styles.heroDiscOuter}>
-          <View style={styles.heroDiscInner}>
-            <Text style={styles.heroGlyph}>{iconForArtifact(artifact.type)}</Text>
-          </View>
+          <Image
+            source={getArtifactImageSource(artifact.id)}
+            style={styles.heroImage}
+            resizeMode="contain"
+          />
         </View>
       </View>
 
       <Text style={styles.era}>{artifact.era}</Text>
       <Text style={styles.title}>{artifact.title}</Text>
       <Text style={styles.meta}>
-        {artifact.dynastyOrCollection} - {artifact.floorLabel}, {artifact.roomCode}
+        {getArtifactCategory(artifact)} - {getArtifactLocationLabel(artifact)}
       </Text>
 
       <View style={styles.tagRow}>
@@ -151,12 +159,16 @@ export function ArtifactDetailScreen() {
               <Text style={styles.relatedBadgeText}>{related.floorLabel}</Text>
             </View>
             <View style={styles.relatedIconZone}>
-              <Text style={styles.relatedIcon}>{iconForArtifact(related.type)}</Text>
+              <Image
+                source={getArtifactImageSource(related.id)}
+                style={styles.relatedImage}
+                resizeMode="contain"
+              />
             </View>
             <View style={styles.relatedCopy}>
               <Text style={styles.relatedEra}>{related.era}</Text>
               <Text style={styles.relatedCardTitle}>{related.title}</Text>
-              <Text style={styles.relatedMeta}>{related.dynastyOrCollection}</Text>
+              <Text style={styles.relatedMeta}>{getArtifactCategory(related)}</Text>
             </View>
           </Pressable>
         ))}
@@ -180,23 +192,6 @@ function formatTime(totalSeconds: number) {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-function iconForArtifact(type: string) {
-  switch (type) {
-    case 'Antiquity':
-      return 'U';
-    case 'Weapon':
-      return 'W';
-    case 'Map':
-      return 'M';
-    case 'Textile':
-      return 'T';
-    case 'Scale Model':
-      return 'B';
-    default:
-      return '*';
-  }
-}
-
 const styles = StyleSheet.create({
   screenContent: {
     paddingTop: spacing.lg,
@@ -210,7 +205,7 @@ const styles = StyleSheet.create({
   },
   fallbackTitle: {
     color: colors.text,
-    fontSize: 24,
+    fontSize: 25,
     fontWeight: '700',
   },
   backButton: {
@@ -268,29 +263,16 @@ const styles = StyleSheet.create({
     width: 208,
     height: 208,
     borderRadius: 104,
-    backgroundColor: '#7B4A2E',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroDiscInner: {
-    width: 186,
-    height: 186,
-    borderRadius: 93,
-    borderWidth: 3,
-    borderColor: '#C58A57',
-    backgroundColor: '#3E2C25',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroGlyph: {
-    color: '#E7A567',
-    fontSize: 84,
-    lineHeight: 88,
-    fontWeight: '700',
+  heroImage: {
+    width: 400,
+    height: 400,
   },
   era: {
     color: colors.accentSecondary,
-    fontSize: 16,
+    fontSize: 15,
     marginTop: spacing.sm,
   },
   title: {
@@ -318,7 +300,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     color: '#B35A4B',
-    fontSize: 12,
+    fontSize: 15,
   },
   audioCard: {
     minHeight: 92,
@@ -349,7 +331,7 @@ const styles = StyleSheet.create({
   },
   audioTitle: {
     color: colors.surface,
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: '700',
   },
   audioProgressTrack: {
@@ -364,12 +346,12 @@ const styles = StyleSheet.create({
   },
   audioTime: {
     color: '#E4CCC6',
-    fontSize: 12,
+    fontSize: 15,
   },
   body: {
     color: colors.text,
-    fontSize: 16,
-    lineHeight: 23,
+    fontSize: 20,
+    lineHeight: 28,
   },
   dividerRow: {
     paddingVertical: 2,
@@ -394,11 +376,11 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     color: '#9E8B76',
-    fontSize: 11,
+    fontSize: 15,
   },
   infoValue: {
     color: colors.text,
-    fontSize: 15,
+    fontSize: 20,
   },
   relatedHeader: {
     flexDirection: 'row',
@@ -412,7 +394,7 @@ const styles = StyleSheet.create({
   },
   relatedTitle: {
     color: colors.accent,
-    fontSize: 18,
+    fontSize: 25,
     fontWeight: '700',
   },
   relatedRow: {
@@ -439,7 +421,7 @@ const styles = StyleSheet.create({
   },
   relatedBadgeText: {
     color: '#CA6D5D',
-    fontSize: 10,
+    fontSize: 15,
   },
   relatedIconZone: {
     minHeight: 88,
@@ -447,11 +429,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  relatedIcon: {
-    color: colors.accent,
-    fontSize: 34,
-    lineHeight: 36,
-    fontWeight: '700',
+  relatedImage: {
+    width: 66,
+    height: 66,
   },
   relatedCopy: {
     padding: 10,
@@ -459,15 +439,15 @@ const styles = StyleSheet.create({
   },
   relatedEra: {
     color: '#A27E70',
-    fontSize: 10,
+    fontSize: 15,
   },
   relatedCardTitle: {
     color: colors.text,
-    fontSize: 13,
-    lineHeight: 16,
+    fontSize: 20,
+    lineHeight: 24,
   },
   relatedMeta: {
     color: colors.textSoft,
-    fontSize: 10,
+    fontSize: 15,
   },
 });

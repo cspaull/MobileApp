@@ -1,4 +1,6 @@
-import { Artifact, UserProfile, artifacts, defaultUserProfile, relatedArtifactIds } from '../data/museumData';
+import type { ImageSourcePropType } from 'react-native';
+
+import { Artifact, UserProfile, artifacts, defaultUserProfile } from '../data/museumData';
 import { Result, failure, success } from '../domain/result';
 
 export type StoredMuseumState = {
@@ -6,6 +8,18 @@ export type StoredMuseumState = {
   favorites: string[];
   viewedArtifacts: string[];
   completedJourneys: number;
+};
+
+const artifactImages: Record<string, ImageSourcePropType> = {
+  'kham-sai-dai-quan-phong': require('../../assets/artifacts/art_1.png'),
+  'ta-quan-chi-an': require('../../assets/artifacts/art_2.png'),
+  'luong-tai-hau-chi-an': require('../../assets/artifacts/art_3.png'),
+  'canh-hung-thong-bao': require('../../assets/artifacts/art_9.png'),
+  'the-thieu-tri': require('../../assets/artifacts/art_10.png'),
+  'minh-mang-era-silver-bar': require('../../assets/artifacts/art_11.png'),
+  revolver: require('../../assets/artifacts/art_16.png'),
+  'carrier-bicycle': require('../../assets/artifacts/art_17.png'),
+  canteen: require('../../assets/artifacts/art_18.png'),
 };
 
 export const initialMuseumState: StoredMuseumState = {
@@ -49,12 +63,38 @@ export const getArtifactById = (artifactId: string): Result<Artifact> => {
   return artifact ? success(artifact) : failure(`Artifact ${artifactId} was not found.`);
 };
 
-export const getRelatedArtifacts = (artifactId: string): Artifact[] => {
-  const relatedIds = relatedArtifactIds[artifactId] ?? [];
+export const getArtifactImageSource = (artifactId: string): ImageSourcePropType =>
+  artifactImages[artifactId] ?? require('../../assets/artifacts.png');
 
-  return relatedIds
-    .map((relatedId) => artifacts.find((artifact) => artifact.id === relatedId))
-    .filter((artifact): artifact is Artifact => Boolean(artifact));
+export const getArtifactCategory = (artifact: Artifact): string =>
+  artifact.tags.find((tag) => !['Most Popular', 'Newly Displayed', 'Extremely Rare', 'Popular', 'Family Favorite', 'Powerful Story', 'Rare'].includes(tag)) ??
+  artifact.tags[0] ??
+  artifact.roomName;
+
+export const getArtifactLocationLabel = (artifact: Artifact): string =>
+  `${artifact.floorLabel} - ${artifact.roomName}`;
+
+export const getRelatedArtifacts = (artifactId: string): Artifact[] => {
+  const artifact = artifacts.find((entry) => entry.id === artifactId);
+
+  if (!artifact) {
+    return [];
+  }
+
+  return artifacts
+    .filter((entry) => entry.id !== artifact.id)
+    .map((entry) => {
+      const sharedTags = entry.tags.filter((tag) => artifact.tags.includes(tag)).length;
+      const sameRoom = entry.roomName === artifact.roomName ? 4 : 0;
+      const sameFloor = entry.floorLabel === artifact.floorLabel ? 2 : 0;
+      const score = sharedTags * 3 + sameRoom + sameFloor;
+
+      return { entry, score };
+    })
+    .filter(({ score }) => score > 0)
+    .sort((left, right) => right.score - left.score)
+    .slice(0, 4)
+    .map(({ entry }) => entry);
 };
 
 export const computeProfileStats = (state: StoredMuseumState) => ({
