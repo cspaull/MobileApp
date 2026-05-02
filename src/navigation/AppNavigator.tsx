@@ -2,7 +2,8 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, View, Image } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ArtifactDetailScreen } from '../screens/ArtifactDetailScreen';
 import { ArtifactsScreen } from '../screens/ArtifactsScreen';
@@ -38,7 +39,6 @@ const tabLabels: Record<keyof TabParamList, string> = {
   Profile: 'Profile',
 };
 
-// 👉 DÙNG ICON PNG
 const tabIcons: Record<keyof TabParamList, any> = {
   Home: require('../../assets/icons/home.png'),
   Map: require('../../assets/icons/map.png'),
@@ -48,16 +48,22 @@ const tabIcons: Record<keyof TabParamList, any> = {
 };
 
 function MainTabs() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: colors.accent,   // 👉 màu đỏ khi chọn
-        tabBarInactiveTintColor: colors.text,   // 👉 màu xám/đen khi không chọn
+        tabBarStyle: [
+          styles.tabBar,
+          {
+            height: 62 + insets.bottom,
+            paddingBottom: Math.max(insets.bottom, 10),
+          },
+        ],
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.text,
         tabBarLabelStyle: styles.tabLabel,
-
-        // 👉 ICON
         tabBarIcon: ({ color, focused }) => (
           <Image
             source={tabIcons[route.name]}
@@ -75,8 +81,16 @@ function MainTabs() {
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: tabLabels.Home }} />
       <Tab.Screen name="Map" component={MapScreen} options={{ title: tabLabels.Map }} />
-      <Tab.Screen name="Artifact" component={ArtifactsScreen} options={{ title: tabLabels.Artifact }} />
-      <Tab.Screen name="Schedule" component={ScheduleScreen} options={{ title: tabLabels.Schedule }} />
+      <Tab.Screen
+        name="Artifact"
+        component={ArtifactsScreen}
+        options={{ title: tabLabels.Artifact }}
+      />
+      <Tab.Screen
+        name="Schedule"
+        component={ScheduleScreen}
+        options={{ title: tabLabels.Schedule }}
+      />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: tabLabels.Profile }} />
     </Tab.Navigator>
   );
@@ -117,21 +131,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.background,
-    gap: 16,
   },
   loadingText: {
     color: colors.textMuted,
-    fontSize: 15,
+    fontSize: 20,
+    textAlign: 'center'
   },
   tabBar: {
     backgroundColor: '#FFFDF5',
     borderTopColor: colors.border,
-    height: 72,
     paddingTop: 6,
-    paddingBottom: 10,
   },
   tabLabel: {
-    fontSize: 11,
+    fontSize: 15,
     fontWeight: '600',
   },
   iconImage: {

@@ -1,9 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   View,
@@ -42,7 +42,7 @@ export function Screen({
 
   return (
     <LinearGradient colors={gradientColors} style={styles.root}>
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.flex}
@@ -65,8 +65,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    flexGrow: 1,
     padding: spacing.lg,
-    paddingBottom: spacing.xxl,
     gap: spacing.lg,
+    paddingBottom: 0,
   },
 });

@@ -4,7 +4,7 @@
     "slug": "museum-companion",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logomu.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {

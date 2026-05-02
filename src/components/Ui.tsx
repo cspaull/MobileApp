@@ -200,15 +200,15 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     color: colors.accent,
-    fontSize: 12,
+    fontSize: 15,
     textTransform: 'uppercase',
     letterSpacing: 1.6,
     fontWeight: '700',
   },
   title: {
     color: colors.accent,
-    fontSize: 32,
-    lineHeight: 38,
+    fontSize: 30,
+    lineHeight: 34,
     fontWeight: '800',
   },
   subtitle: {
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentSoft,
   },
   pillText: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '700',
   },
   pillTextIdle: {
@@ -307,29 +307,29 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: colors.authText,
     fontWeight: '800',
-    fontSize: 15,
+    fontSize: 20,
   },
   secondaryButtonText: {
     color: colors.accent,
     fontWeight: '700',
-    fontSize: 15,
+    fontSize: 20,
   },
   primaryButtonTextDark: {
     color: colors.accent,
     fontWeight: '800',
-    fontSize: 15,
+    fontSize: 20,
   },
   secondaryButtonTextDark: {
     color: colors.authText,
     fontWeight: '700',
-    fontSize: 15,
+    fontSize: 20,
   },
   inputWrap: {
     gap: spacing.xs,
   },
   inputLabel: {
     color: colors.accent,
-    fontSize: 12,
+    fontSize: 15,
     fontWeight: '700',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
@@ -357,12 +357,12 @@ const styles = StyleSheet.create({
   },
   statValue: {
     color: colors.textMuted,
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '800',
   },
   statLabel: {
     color: colors.textMuted,
-    fontSize: 13,
+    fontSize: 15,
   },
   settingRow: {
     minHeight: 56,

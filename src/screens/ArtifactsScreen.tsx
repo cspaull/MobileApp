@@ -1,12 +1,23 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import React, { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { Screen } from '../components/Screen';
 import { artifacts } from '../data/museumData';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { colors, radius, spacing } from '../theme/theme';
+import { getArtifactCategory, getArtifactImageSource } from '../utils/museum';
 
 const floorFilters = ['All', '1st floor', '2nd floor'] as const;
 
@@ -14,16 +25,43 @@ export function ArtifactsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [query, setQuery] = useState('');
   const [selectedFloor, setSelectedFloor] = useState<(typeof floorFilters)[number]>('All');
+  const [qrVisible, setQrVisible] = useState(false);
+  const [scanned, setScanned] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
 
   const filteredArtifacts = useMemo(() => {
     return artifacts.filter((artifact) => {
       const matchesFloor = selectedFloor === 'All' || artifact.floorLabel === selectedFloor;
-      const searchable = `${artifact.title} ${artifact.dynastyOrCollection} ${artifact.type}`.toLowerCase();
+      const searchable = `${artifact.title} ${artifact.roomName} ${artifact.tags.join(' ')}`.toLowerCase();
       const matchesQuery = searchable.includes(query.trim().toLowerCase());
-
       return matchesFloor && matchesQuery;
     });
   }, [query, selectedFloor]);
+
+  async function handleOpenQR() {
+    if (!permission?.granted) {
+      const result = await requestPermission();
+      if (!result.granted) return;
+    }
+    setScanned(false);
+    setQrVisible(true);
+  }
+
+  function handleBarCodeScanned({ data }: { data: string }) {
+    if (scanned) return;
+    setScanned(true);
+    setQrVisible(false);
+
+    // QR data format: "artifact:<id>"  hoặc chỉ là artifact id
+    const artifactId = data.startsWith('artifact:') ? data.replace('artifact:', '') : data;
+    const found = artifacts.find((a) => a.id === artifactId);
+
+    if (found) {
+      navigation.navigate('ArtifactDetail', { artifactId: found.id });
+    } else {
+      alert(`Không tìm thấy artifact: "${artifactId}"`);
+    }
+  }
 
   return (
     <Screen contentStyle={styles.screenContent}>
@@ -32,30 +70,72 @@ export function ArtifactsScreen() {
           <Text style={styles.headerTitle}>ARTIFACTS</Text>
           <Text style={styles.headerSubtitle}>COLLECTION</Text>
         </View>
-        <Pressable style={styles.filterButton}>
-          <Text style={styles.filterButtonText}>F</Text>
-        </Pressable>
+
+        {/* ── Nhóm 2 nút ── */}
+        <View style={styles.headerButtons}>
+          {/* Nút QR */}
+          <Pressable style={styles.filterButton} onPress={handleOpenQR}>
+          <Image
+            source={require('../../assets/qr.png')}
+          />
+          </Pressable>
+
+          {/* Nút Filter */}
+          <Pressable style={styles.filterButton}>
+            <Image
+              source={require('../../assets/mdi_filter-outline.png')}
+              style={styles.filterIcon}
+              resizeMode="contain"
+            />
+          </Pressable>
+        </View>
       </View>
 
+      {/* ── Modal Camera ── */}
+      <Modal visible={qrVisible} animationType="slide" onRequestClose={() => setQrVisible(false)}>
+        <View style={styles.cameraContainer}>
+          <CameraView
+            style={StyleSheet.absoluteFillObject}
+            facing="back"
+            barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+            onBarcodeScanned={handleBarCodeScanned}
+          />
+
+          {/* Khung ngắm */}
+          <View style={styles.overlay}>
+            <View style={styles.scanFrame} />
+            <Text style={styles.scanHint}>Hướng camera vào mã QR của hiện vật</Text>
+          </View>
+
+          {/* Nút đóng */}
+          <Pressable style={styles.closeBtn} onPress={() => setQrVisible(false)}>
+            <Text style={styles.closeBtnText}>✕  Đóng</Text>
+          </Pressable>
+        </View>
+      </Modal>
+
       <View style={styles.searchBar}>
-        <Text style={styles.searchIcon}>Q</Text>
+        <Text style={styles.searchIcon}>⌕</Text>
         <TextInput
           value={query}
           onChangeText={setQuery}
           placeholder="Search for artifacts..."
-          placeholderTextColor="#B98F87"
+          placeholderTextColor="#C87F72"
           style={styles.searchInput}
         />
       </View>
 
-      <View style={styles.filterRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterRow}
+      >
         {floorFilters.map((filter) => {
           const active = selectedFloor === filter;
-
           return (
             <Pressable
               key={filter}
-              style={[styles.filterPill, active && styles.filterPillActive]}
+              style={[styles.filterPill, active ? styles.filterPillActive : styles.filterPillIdle]}
               onPress={() => setSelectedFloor(filter)}
             >
               <Text style={[styles.filterPillText, active && styles.filterPillTextActive]}>
@@ -64,7 +144,7 @@ export function ArtifactsScreen() {
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
 
       <View style={styles.grid}>
         {filteredArtifacts.map((artifact) => (
@@ -73,39 +153,26 @@ export function ArtifactsScreen() {
             style={styles.gridCard}
             onPress={() => navigation.navigate('ArtifactDetail', { artifactId: artifact.id })}
           >
-            <View style={styles.floorBadge}>
-              <Text style={styles.floorBadgeText}>{artifact.floorLabel}</Text>
-            </View>
-            <View style={styles.iconZone}>
-              <Text style={styles.cardIcon}>{iconForArtifact(artifact.type)}</Text>
+            <View style={styles.imagePanel}>
+              <View style={styles.floorBadge}>
+                <Text style={styles.floorBadgeText}>{artifact.floorLabel}</Text>
+              </View>
+              <Image
+                source={getArtifactImageSource(artifact.id)}
+                resizeMode="contain"
+                style={styles.artifactImage}
+              />
             </View>
             <View style={styles.cardCopy}>
               <Text style={styles.cardEra}>{artifact.era}</Text>
-              <Text style={styles.cardTitle}>{artifact.title}</Text>
-              <Text style={styles.cardMeta}>{artifact.dynastyOrCollection}</Text>
+              <Text numberOfLines={2} style={styles.cardTitle}>{artifact.title}</Text>
+              <Text numberOfLines={1} style={styles.cardMeta}>{getArtifactCategory(artifact)}</Text>
             </View>
           </Pressable>
         ))}
       </View>
     </Screen>
   );
-}
-
-function iconForArtifact(type: string) {
-  switch (type) {
-    case 'Antiquity':
-      return 'U';
-    case 'Weapon':
-      return 'W';
-    case 'Map':
-      return 'M';
-    case 'Textile':
-      return 'T';
-    case 'Scale Model':
-      return 'B';
-    default:
-      return '*';
-  }
 }
 
 const styles = StyleSheet.create({
@@ -121,130 +188,200 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: colors.accent,
-    fontSize: 22,
+    fontSize: 30,
+    lineHeight: 34,
     fontWeight: '400',
   },
   headerSubtitle: {
     color: colors.accent,
-    fontSize: 20,
+    fontSize: 25,
+    lineHeight: 30,
     fontWeight: '400',
   },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingLeft: 5,
+  },
   filterButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
+    width: 58,
+    height: 58,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#D9CCA3',
+    backgroundColor: '#D2C39E',
   },
-  filterButtonText: {
-    color: colors.textMuted,
-    fontSize: 22,
-    fontWeight: '700',
+  qrIcon: {
+    fontSize: 26,
+    color: '#7B6049',
   },
-  searchBar: {
-    minHeight: 48,
-    borderRadius: radius.md,
-    backgroundColor: colors.surface,
+  filterIcon: {
+    width: 26,
+    height: 26,
+    tintColor: '#7B6049',
+  },
+
+  // ── Camera Modal ──
+  cameraContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 20,
+  },
+  scanFrame: {
+    width: 240,
+    height: 240,
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: '#FFD97D',
+    backgroundColor: 'transparent',
+  },
+  scanHint: {
+    color: '#fff',
+    fontSize: 15,
+    textAlign: 'center',
+    paddingHorizontal: 32,
+    opacity: 0.85,
+  },
+  closeBtn: {
+    position: 'absolute',
+    bottom: 52,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: radius.pill,
+    paddingHorizontal: 28,
+    paddingVertical: 12,
     borderWidth: 1,
-    borderColor: 'rgba(92, 15, 15, 0.18)',
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  closeBtnText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '600',
+  },
+
+  // ── Phần còn lại giữ nguyên ──
+  searchBar: {
+    minHeight: 50,
+    borderRadius: 16,
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: 'rgba(86, 76, 72, 0.28)',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     gap: 6,
   },
   searchIcon: {
     color: colors.accent,
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 22,
+    lineHeight: 22,
   },
   searchInput: {
     flex: 1,
     color: colors.text,
-    fontSize: 15,
+    fontSize: 20,
+    fontStyle: 'italic',
     paddingVertical: 0,
   },
   filterRow: {
-    flexDirection: 'row',
     gap: spacing.sm,
+    paddingRight: spacing.lg,
   },
   filterPill: {
-    minWidth: 96,
-    minHeight: 32,
+    alignSelf: 'flex-start', 
     borderRadius: radius.pill,
-    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: spacing.lg,
+    borderWidth: 2,
   },
   filterPillActive: {
     backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  filterPillIdle: {
+    backgroundColor: '#FCFCFC',
+    borderColor: '#B9B9B9',
   },
   filterPillText: {
+    fontSize: 20,
     color: colors.text,
-    fontSize: 14,
   },
   filterPillTextActive: {
-    color: colors.surface,
+    color: colors.white,
     fontWeight: '700',
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    justifyContent: 'space-between',
+    rowGap: spacing.md,
   },
   gridCard: {
-    width: '47.8%',
-    minHeight: 206,
-    borderRadius: radius.md,
+    width: '48.5%',
+    borderRadius: 22,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: 'rgba(92, 15, 15, 0.14)',
+    borderWidth: 2,
+    borderColor: '#B8B1A6',
     overflow: 'hidden',
+  },
+  imagePanel: {
+    minHeight: 128,
+    backgroundColor: '#E6DDBF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 18,
+    paddingBottom: 10,
+    paddingHorizontal: 10,
+  },
+  artifactImage: {
+    width: '72%',
+    height: 88,
   },
   floorBadge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 10,
+    right: 10,
     zIndex: 1,
     borderRadius: radius.pill,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    backgroundColor: '#F4D4CF',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    backgroundColor: '#EDC0AB',
   },
   floorBadgeText: {
-    color: '#CA6D5D',
-    fontSize: 11,
-  },
-  iconZone: {
-    minHeight: 120,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#E7DDBD',
-  },
-  cardIcon: {
-    color: colors.accent,
-    fontSize: 42,
-    lineHeight: 44,
-    fontWeight: '700',
+    color: '#B64735',
+    fontSize: 15,
   },
   cardCopy: {
-    flex: 1,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 10,
-    gap: 2,
+    minHeight: 88,
+    paddingHorizontal: 10,
+    paddingTop: 6,
+    paddingBottom: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#B8B1A6',
+    backgroundColor: colors.surface,
   },
   cardEra: {
-    color: '#A27E70',
-    fontSize: 11,
+    color: '#B45B52',
+    fontSize: 15,
+    fontStyle: 'italic',
   },
   cardTitle: {
+    marginTop: 2,
     color: colors.text,
-    fontSize: 17,
-    lineHeight: 20,
+    fontSize: 20,
+    lineHeight: 24,
   },
   cardMeta: {
+    marginTop: 1,
     color: colors.textSoft,
-    fontSize: 11,
+    fontSize: 15,
+    fontStyle: 'italic',
   },
+  
 });
