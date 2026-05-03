@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   hero: {
-    height: 225,
+    height: 300,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
     paddingBottom: 25,
