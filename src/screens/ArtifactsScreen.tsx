@@ -25,18 +25,28 @@ export function ArtifactsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [query, setQuery] = useState('');
   const [selectedFloor, setSelectedFloor] = useState<(typeof floorFilters)[number]>('All');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [filterVisible, setFilterVisible] = useState(false);
   const [qrVisible, setQrVisible] = useState(false);
   const [scanned, setScanned] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
 
+  const categories = useMemo(
+    () => ['All', ...new Set(artifacts.map((artifact) => getArtifactCategory(artifact)))],
+    [],
+  );
+
   const filteredArtifacts = useMemo(() => {
     return artifacts.filter((artifact) => {
       const matchesFloor = selectedFloor === 'All' || artifact.floorLabel === selectedFloor;
-      const searchable = `${artifact.title} ${artifact.roomName} ${artifact.tags.join(' ')}`.toLowerCase();
+      const matchesCategory =
+        selectedCategory === 'All' || getArtifactCategory(artifact) === selectedCategory;
+      const searchable =
+        `${artifact.title} ${artifact.roomName} ${artifact.tags.join(' ')}`.toLowerCase();
       const matchesQuery = searchable.includes(query.trim().toLowerCase());
-      return matchesFloor && matchesQuery;
+      return matchesFloor && matchesCategory && matchesQuery;
     });
-  }, [query, selectedFloor]);
+  }, [query, selectedCategory, selectedFloor]);
 
   async function handleOpenQR() {
     if (!permission?.granted) {
@@ -52,15 +62,20 @@ export function ArtifactsScreen() {
     setScanned(true);
     setQrVisible(false);
 
-    // QR data format: "artifact:<id>"  hoặc chỉ là artifact id
     const artifactId = data.startsWith('artifact:') ? data.replace('artifact:', '') : data;
-    const found = artifacts.find((a) => a.id === artifactId);
+    const found = artifacts.find((artifact) => artifact.id === artifactId);
 
     if (found) {
       navigation.navigate('ArtifactDetail', { artifactId: found.id });
-    } else {
-      alert(`Không tìm thấy artifact: "${artifactId}"`);
+      return;
     }
+
+    alert(`Could not find artifact: "${artifactId}"`);
+  }
+
+  function handleResetFilters() {
+    setSelectedFloor('All');
+    setSelectedCategory('All');
   }
 
   return (
@@ -71,17 +86,12 @@ export function ArtifactsScreen() {
           <Text style={styles.headerSubtitle}>COLLECTION</Text>
         </View>
 
-        {/* ── Nhóm 2 nút ── */}
         <View style={styles.headerButtons}>
-          {/* Nút QR */}
           <Pressable style={styles.filterButton} onPress={handleOpenQR}>
-          <Image
-            source={require('../../assets/qr.png')}
-          />
+            <Image source={require('../../assets/qr.png')} />
           </Pressable>
 
-          {/* Nút Filter */}
-          <Pressable style={styles.filterButton}>
+          <Pressable style={styles.filterButton} onPress={() => setFilterVisible(true)}>
             <Image
               source={require('../../assets/mdi_filter-outline.png')}
               style={styles.filterIcon}
@@ -91,7 +101,6 @@ export function ArtifactsScreen() {
         </View>
       </View>
 
-      {/* ── Modal Camera ── */}
       <Modal visible={qrVisible} animationType="slide" onRequestClose={() => setQrVisible(false)}>
         <View style={styles.cameraContainer}>
           <CameraView
@@ -101,16 +110,80 @@ export function ArtifactsScreen() {
             onBarcodeScanned={handleBarCodeScanned}
           />
 
-          {/* Khung ngắm */}
           <View style={styles.overlay}>
             <View style={styles.scanFrame} />
-            <Text style={styles.scanHint}>Hướng camera vào mã QR của hiện vật</Text>
+            <Text style={styles.scanHint}>Point the camera at an artifact QR code.</Text>
           </View>
 
-          {/* Nút đóng */}
           <Pressable style={styles.closeBtn} onPress={() => setQrVisible(false)}>
-            <Text style={styles.closeBtnText}>✕  Đóng</Text>
+            <Text style={styles.closeBtnText}>Close</Text>
           </Pressable>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={filterVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setFilterVisible(false)}
+      >
+        <View style={styles.filterModalBackdrop}>
+          <View style={styles.filterModalCard}>
+            <View style={styles.filterModalHeader}>
+              <Text style={styles.filterModalTitle}>Filter Artifacts</Text>
+              <Pressable onPress={() => setFilterVisible(false)} style={styles.filterModalClose}>
+                <Text style={styles.filterModalCloseText}>X</Text>
+              </Pressable>
+            </View>
+
+            <Text style={styles.filterSectionLabel}>Floor</Text>
+            <View style={styles.filterOptionWrap}>
+              {floorFilters.map((filter) => {
+                const active = selectedFloor === filter;
+                return (
+                  <Pressable
+                    key={filter}
+                    style={[styles.modalPill, active ? styles.modalPillActive : styles.modalPillIdle]}
+                    onPress={() => setSelectedFloor(filter)}
+                  >
+                    <Text style={[styles.modalPillText, active && styles.modalPillTextActive]}>
+                      {filter}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <Text style={styles.filterSectionLabel}>Category</Text>
+            <View style={styles.filterOptionWrap}>
+              {categories.map((category) => {
+                const active = selectedCategory === category;
+                return (
+                  <Pressable
+                    key={category}
+                    style={[styles.modalPill, active ? styles.modalPillActive : styles.modalPillIdle]}
+                    onPress={() => setSelectedCategory(category)}
+                  >
+                    <Text style={[styles.modalPillText, active && styles.modalPillTextActive]}>
+                      {category}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <View style={styles.filterActions}>
+              <Pressable style={styles.secondaryAction} onPress={handleResetFilters}>
+                <Text style={styles.secondaryActionText}>Reset</Text>
+              </Pressable>
+              <Pressable
+                style={styles.primaryAction}
+                onPress={() => setFilterVisible(false)}
+              >
+                <Text style={styles.primaryActionText}>Apply</Text>
+              </Pressable>
+            </View>
+          </View>
         </View>
       </Modal>
 
@@ -128,6 +201,7 @@ export function ArtifactsScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={styles.filterScroll}
         contentContainerStyle={styles.filterRow}
       >
         {floorFilters.map((filter) => {
@@ -145,6 +219,14 @@ export function ArtifactsScreen() {
           );
         })}
       </ScrollView>
+
+      {selectedCategory !== 'All' ? (
+        <View style={styles.activeFiltersRow}>
+          <View style={styles.activeFilterChip}>
+            <Text style={styles.activeFilterText}>{selectedCategory}</Text>
+          </View>
+        </View>
+      ) : null}
 
       <View style={styles.grid}>
         {filteredArtifacts.map((artifact) => (
@@ -165,8 +247,12 @@ export function ArtifactsScreen() {
             </View>
             <View style={styles.cardCopy}>
               <Text style={styles.cardEra}>{artifact.era}</Text>
-              <Text numberOfLines={2} style={styles.cardTitle}>{artifact.title}</Text>
-              <Text numberOfLines={1} style={styles.cardMeta}>{getArtifactCategory(artifact)}</Text>
+              <Text numberOfLines={2} style={styles.cardTitle}>
+                {artifact.title}
+              </Text>
+              <Text numberOfLines={1} style={styles.cardMeta}>
+                {getArtifactCategory(artifact)}
+              </Text>
             </View>
           </Pressable>
         ))}
@@ -211,17 +297,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#D2C39E',
   },
-  qrIcon: {
-    fontSize: 26,
-    color: '#7B6049',
-  },
   filterIcon: {
     width: 26,
     height: 26,
     tintColor: '#7B6049',
   },
-
-  // ── Camera Modal ──
   cameraContainer: {
     flex: 1,
     backgroundColor: '#000',
@@ -263,8 +343,106 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
   },
-
-  // ── Phần còn lại giữ nguyên ──
+  filterModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+  },
+  filterModalCard: {
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  filterModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  filterModalTitle: {
+    color: colors.accent,
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  filterModalClose: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.backgroundAlt,
+  },
+  filterModalCloseText: {
+    color: colors.accentStrong,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  filterSectionLabel: {
+    color: colors.textSoft,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  filterOptionWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  modalPill: {
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    borderWidth: 2,
+  },
+  modalPillActive: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  modalPillIdle: {
+    backgroundColor: '#FCFCFC',
+    borderColor: '#B9B9B9',
+  },
+  modalPillText: {
+    color: colors.text,
+    fontSize: 16,
+  },
+  modalPillTextActive: {
+    color: colors.white,
+    fontWeight: '700',
+  },
+  filterActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  secondaryAction: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.backgroundAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  secondaryActionText: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  primaryAction: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.accent,
+  },
+  primaryActionText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '700',
+  },
   searchBar: {
     minHeight: 50,
     borderRadius: 16,
@@ -292,8 +470,28 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingRight: spacing.lg,
   },
+  filterScroll: {
+    flexGrow: 0,
+  },
+  activeFiltersRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  activeFilterChip: {
+    alignSelf: 'flex-start',
+    borderRadius: radius.pill,
+    backgroundColor: '#F0D3CD',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  activeFilterText: {
+    color: '#B35A4B',
+    fontSize: 15,
+    fontWeight: '600',
+  },
   filterPill: {
-    alignSelf: 'flex-start', 
+    alignSelf: 'flex-start',
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
@@ -320,6 +518,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    alignContent: 'flex-start',
     rowGap: spacing.md,
   },
   gridCard: {
@@ -383,5 +582,4 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontStyle: 'italic',
   },
-  
 });
